@@ -1,0 +1,14 @@
+# Keil中间文件
+*.o
+*.d
+*.axf
+*.hex
+*.bin
+*.lst
+*.map
+*.htm
+*.dep
+
+# Keil输出目录
+Objects/
+Listings/

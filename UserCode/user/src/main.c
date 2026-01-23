@@ -53,6 +53,12 @@
 
 
 // **************************** 代码区域 ****************************
+
+#include "zf_device_oled.h"
+#include "zf_driver_timer.h"
+#include "zf_device_key.h"
+
+
 #define LED1                    (H2 )
 #define LED2                    (B13)
 
@@ -70,7 +76,17 @@ int main (void)
 {
     clock_init(SYSTEM_CLOCK_120M);                                              // 初始化芯片时钟 工作频率为 120MHz
     debug_init();                                                               // 初始化默认 Debug UART
-
+	
+	//初始化OLED（测试）
+	oled_set_dir(OLED_CROSSWISE);
+	oled_init();
+	oled_set_font(OLED_6X8_FONT);
+	
+	//初始化Timer
+	timer_init(TIM_1, TIMER_US);
+	timer_clock_enable(TIM_1);
+	uint16_t time = 0;
+	
     // 此处编写用户代码 例如外设初始化代码等
     uint16 delay_time = 0;
 	
@@ -86,46 +102,17 @@ int main (void)
     gpio_init(SWITCH1, GPI, GPIO_HIGH, GPI_FLOATING_IN);                        // 初始化 SWITCH1 输入 默认高电平 浮空输入
     gpio_init(SWITCH2, GPI, GPIO_HIGH, GPI_FLOATING_IN);                        // 初始化 SWITCH2 输入 默认高电平 浮空输入
     // 此处编写用户代码 例如外设初始化代码等
+	
+	oled_clear();
+	timer_start(TIM_1);
 
     while(1)
     {
         // 此处编写需要循环执行的代码
-        delay_time = 100;                                                       // 延时时间复位
-        if(!gpio_get_level(SWITCH1))                                            // 获取 SWITCH1 电平为低
-        {
-            delay_time *= 2;                                                    // 延时时间翻 2 倍
-        }
-        if(!gpio_get_level(SWITCH2))                                            // 获取 SWITCH1 电平为低
-        {
-            delay_time *= 4;                                                    // 延时时间翻 4 倍
-        }
-
-        if( !gpio_get_level(KEY1) || !gpio_get_level(KEY2) || \
-            !gpio_get_level(KEY3) || !gpio_get_level(KEY4) )                    // 获取 KEYx 电平为低
-        {
-            gpio_set_level(LED1, GPIO_HIGH);
-            gpio_set_level(LED2, GPIO_HIGH);
-            while(1)
-            {
-                if( gpio_get_level(KEY1) && gpio_get_level(KEY2) && \
-                    gpio_get_level(KEY3) && gpio_get_level(KEY4) )              // 获取 KEYx 电平为高
-                {
-                    break;
-                }
-
-                system_delay_ms(500);                                           // 延时
-                gpio_toggle_level(LED2);                                        // 翻转 LED 引脚输出电平 控制 LED 亮灭
-                gpio_toggle_level(LED1);                                        // 翻转 LED 引脚输出电平 控制 LED 亮灭
-            }
-            gpio_set_level(LED1, GPIO_HIGH);
-            gpio_set_level(LED2, GPIO_LOW);
-        }
-
-        system_delay_ms(delay_time);                                            // 延时
-        gpio_toggle_level(LED1);                                                // 翻转 LED 引脚输出电平 控制 LED 亮灭
-        system_delay_ms(delay_time);                                            // 延时
-        gpio_toggle_level(LED2);                                                // 翻转 LED 引脚输出电平 控制 LED 亮灭
-        // 此处编写需要循环执行的代码
+		oled_show_string(0,0,"car_task1");
+		oled_show_string(0,1,"car_task2");
+		oled_show_string(0,2,"car_task3");
+		oled_show_string(0,3,"car_task4");
     }
 }
 // **************************** 代码区域 ****************************

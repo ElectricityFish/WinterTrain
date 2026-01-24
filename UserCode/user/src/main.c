@@ -5,9 +5,6 @@
 #include "BuzzerAndLED.h"
 #include "Kfilter.h"
 
-#define PIT                             (TIM6_PIT )                             // 使用的周期中断编号 如果修改 需要同步对应修改周期中断编号与 isr.c 中的调用
-#define PIT_PRIORITY                    (TIM6_IRQn)                             // 对应周期中断的中断编号 在 mm32f3277gx.h 头文件中查看 IRQn_Type 枚举体
-
 
 float gyro_yaw = 0, gyro_pitch = 0, gyro_roll = 0;
 float acc_yaw = 0, acc_pitch = 0, acc_roll = 0;
@@ -25,8 +22,8 @@ int main (void)
     debug_init();                                                               // 初始化默认 Debug UART
 	
 	BuzzerAndLED_Init();
-	pit_ms_init(PIT, 100);                                                      // 初始化 PIT 为周期中断 100ms 周期
-    //interrupt_set_priority(PIT_PRIORITY, 0);                                    // 设置 PIT 对周期中断的中断优先级为 0
+	pit_ms_init(TIM6_PIT, 1);                                                      // 初始化 PIT 为周期中断 1ms 周期
+    interrupt_set_priority(TIM6_IRQn, 0);                                // 设置 PIT 对周期中断的中断优先级为 0
 	
 	
 	Motor_Init();
@@ -37,10 +34,9 @@ int main (void)
 	oled_init();
 	oled_set_font (OLED_8X16_FONT);
 	oled_clear ();
-	
-	
-	
-	
+
+	Kalman_Init(&KF,0.0001f,0.003f,0.03f);
+
 	Moto_SetPWM(1,8000);
 	Moto_SetPWM(2,8000);
 	
@@ -65,13 +61,12 @@ int main (void)
 void pit_handler (void)
 {
 
-	Speed2=Get_Count2();///44.f/0.1/9.27666*21.35;
-	Speed1=Get_Count1();///44.f/0.1/9.27666*21.35;
+	Speed2=Get_Count2();
+	Speed1=Get_Count1();
 	Encoder_Clear();
 
 
-	// 此处编写用户代码
-	//中断中获取角速度和加速度（1ms）
+	
 	mpu6050_get_gyro();
 	mpu6050_get_acc();
 	
@@ -89,11 +84,7 @@ void pit_handler (void)
 	AZ = mpu6050_acc_z / 100 * 100;
 	pitch = calculatePitchAngle(AX, AY, AZ, (mpu6050_gyro_y / 100 * 100) , 0.01, &KF)-Offset;
 	
-	//roll角解算（加速度计校准）
-	//使用互补滤波
-	gyro_roll += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
-	acc_roll = atan2(mpu6050_acc_transition(mpu6050_acc_y / 100 * 100) * 0.001, mpu6050_acc_transition(mpu6050_acc_z / 100 * 100) * 0.001) / 3.14159 * 180;
-	roll = (1 - Alpha) * gyro_roll + Alpha * acc_roll;
+	
 	
 	
 }

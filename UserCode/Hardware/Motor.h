@@ -2,7 +2,7 @@
 #ifndef __MOTOR_H
 #define __MOTOR_H
 void Motor_Init(void);
-void Moto_SetPWM(uint8 CH,int16_t PWM);										//第一个参数表示初始化哪一个通道，1或2，第二个参数表示PWM值,最大为10000
+void Motor_SetPWM(uint8 CH,int16_t PWM);										//第一个参数表示初始化哪一个通道，1或2，第二个参数表示PWM值,最大为10000
 
 /*
 接线说明

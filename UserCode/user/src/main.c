@@ -5,7 +5,7 @@
 #include "BuzzerAndLED.h"
 #include "Kfilter.h"
 #include "menu.h"
-
+#include "PID.h"
 
 float gyro_yaw = 0, gyro_pitch = 0, gyro_roll = 0;
 float acc_yaw = 0, acc_pitch = 0, acc_roll = 0;
@@ -14,9 +14,46 @@ float Offset;
 float yaw, pitch, roll;
 KalmanFilter KF;
 
+boot_mode CarMode=IDLE;
 
-int16_t Speed1;
-int16_t Speed2;
+float SpeedLeft,SpeedRight;
+float AveSpeed,DifSpeed;
+int16_t LeftPWM,RightPWM;
+int16_t AvePWM,DifPWM;
+PID_t AnglePID={
+	.Kp=500.0,
+	.Ki=0.0,
+	.Kd=800.0,
+	
+	.OutOffset=0.0,	//输出偏移值,让电机动起来的最小PWM
+	.Target=0.f,
+	.OutMax=10000,
+	.OutMin=-10000,
+
+};
+
+PID_t SpeedPID={	//速度环通过控制目标角度控制行进
+	.Kp=0.0,
+	.Ki=0.0,
+	.Kd=0.0,
+	
+	.Target=0.f,
+	.OutMax=15,//最大倾斜角度
+	.OutMin=-15,
+	
+};
+
+PID_t TurnPID={
+	.Kp=0.0,
+	.Ki=0.0,
+	.Kd=0,
+	
+	.Target=0.f,
+	.OutMax=0.0,
+	.OutMin=-0.0, 
+	
+};
+
 int main (void)
 {
     clock_init(SYSTEM_CLOCK_120M);                                              // 初始化芯片时钟 工作频率为 120MHz
@@ -39,7 +76,8 @@ int main (void)
 	
     while(1)
     {	
-		
+		CarMode=Menu_GetCurMode();
+
     }
 
       
@@ -77,8 +115,8 @@ void pit_handler (void)
         }
 		
 	}
-	
-	if(Count0>=10)//每10ms进行一次姿态解算
+
+	if(Count0>=10)//每10ms进行一次姿态解算，和平衡态控制
 	{
 		
 		
@@ -98,12 +136,40 @@ void pit_handler (void)
 		AY = mpu6050_acc_y / 100 * 100;
 		AZ = mpu6050_acc_z / 100 * 100;
 		pitch = calculatePitchAngle(AX, AY, AZ, (mpu6050_gyro_y / 100 * 100) , 0.01, &KF)-Offset;
+		
+		if(CarMode!=IDLE)
+		{
+			//角度过大保护
+			if (pitch > 50 || pitch < -50)		
+			{
+				CarMode =IDLE;
+				Motor_SetPWM(1,0);
+				Motor_SetPWM(2,0);
+			}
+			
+			AnglePID.Actual=pitch;
+			PID_Update(&AnglePID);
+			
+			AvePWM=AnglePID.Out;
+			
+			LeftPWM=AvePWM+DifPWM/2;
+			RightPWM=AvePWM-DifPWM/2;
+			
+			
+			if(LeftPWM>10000)LeftPWM=10000;else if(LeftPWM<-10000)LeftPWM=-10000;
+			if(RightPWM>10000)RightPWM=10000;else if(RightPWM<-10000)RightPWM=-10000;
+			Motor_SetPWM(1,LeftPWM);
+			Motor_SetPWM(2,RightPWM);
+		}else{
+			Motor_SetPWM(1,0);
+			Motor_SetPWM(2,0);
+		}
 	}
 	
 	if(Count2>=50)//每50ms获取一次编码器计数值
 	{
-		Speed2=Get_Count2();
-		Speed1=Get_Count1();
+		SpeedLeft=Get_Count2();
+		SpeedRight=Get_Count1();
 		Encoder_Clear();
 		Count2=0;
 

@@ -5,23 +5,30 @@
 *************************************************************************************************/
 
 #include "zf_common_headfile.h"
+#include "sensor.h"
+#include "menu.h"
 
-//宏定义传感器返回值
-#define Right3 gpio_get_level (E8);
-#define Right2 gpio_get_level (E9);
-#define Right1 gpio_get_level (E10);
-#define Right0 gpio_get_level (E11);
+/* ==============================================================================================
+                                        全局变量定义
+   ============================================================================================== */
+// 为之后和菜单打配合准备，本来是要直接设成宏定义的，默认为 8 5 3 1
+double L4_WEIGHT = 8.0f;           // 外面灯的权重
+double L3_WEIGHT = 5.0f;           // 次外面灯的权重
+double L2_WEIGHT = 3.0f;           // 次内部灯的权重
+double L1_WEIGHT = 1.0f;           // 内部灯的权重
+/* ==============================================================================================
+                                        函数定义
+   ============================================================================================== */
 
-#define Left3 gpio_get_level (E12);
-#define Left2 gpio_get_level (E13);
-#define Left1 gpio_get_level (E14);
-#define Left0 gpio_get_level (E15);
-
-
+/** 
+ * @brief 传感器初始化
+ * @note 一些简单的gpio_init堆砌
+ * @return
+ */
 void Sensor_Init(void)
 {
-	gpio_init(E8, GPI, GPIO_LOW, GPI_PULL_DOWN);
-    gpio_init(E9, GPI, GPIO_LOW, GPI_PULL_DOWN);
+    gpio_init(E8,  GPI, GPIO_LOW, GPI_PULL_DOWN);
+    gpio_init(E9,  GPI, GPIO_LOW, GPI_PULL_DOWN);
     gpio_init(E10, GPI, GPIO_LOW, GPI_PULL_DOWN);
     gpio_init(E11, GPI, GPIO_LOW, GPI_PULL_DOWN);
     gpio_init(E12, GPI, GPIO_LOW, GPI_PULL_DOWN);

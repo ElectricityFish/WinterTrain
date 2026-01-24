@@ -41,13 +41,8 @@ int main (void)
     {	
 		
     }
-
-      
     
 }
-
-
-
 
 void pit_handler (void)
 {
@@ -60,7 +55,7 @@ void pit_handler (void)
 	Count2++;
 	
 	
-	if(Count1>=10)//每10ms进行一次菜单更新
+	if(Count1>=10)//每10ms进行一次按钮检测
 	{
 		Count1=0;
 		key_scanner();
@@ -75,12 +70,11 @@ void pit_handler (void)
         } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
             Menu_SavePIDToFlash();
         }
-		
+		Menu_JustRefreshValue(); // 持续更新数据
 	}
 	
 	if(Count0>=10)//每10ms进行一次姿态解算
-	{
-		
+	{	
 		
 		Count0 = 0;
 		mpu6050_get_gyro();
@@ -106,16 +100,9 @@ void pit_handler (void)
 		Speed1=Get_Count1();
 		Encoder_Clear();
 		Count2=0;
-
 	}
-
-
-	
-	
-	
-	
-	
 	
 }
+
 
 

@@ -18,5 +18,4 @@ float calculatePitchAngle(float ax, float ay, float az, float gy, float dt, Kalm
 float getAccelAngle(float ax, float ay, float az);
 void GetOffset(float *Offset,float Angle, uint8_t Flag);
 
-
 #endif

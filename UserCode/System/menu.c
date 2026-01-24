@@ -14,42 +14,129 @@
 Interface_TypeDef interface[100] = {
     [MAIN_MENU] = {             // 主菜单界面
         .ID = MAIN_MENU,
-        .option_count = 3,
-        .option_text = {"BOOT MODE", "PID CONTROL", "SENSOR WEIGHT"},
-        .option_mode = {SUBINTERFACE, SUBINTERFACE, SUBINTERFACE},
+        .option_count = 5,
+        .option_text = {
+            "BOOT MODE",
+            "PID CONTROL", 
+            "SENSOR WEIGHT", 
+            "P / Y", 
+            "L / R",
+        },
+        .option_mode = {
+            SUBINTERFACE, 
+            SUBINTERFACE, 
+            SUBINTERFACE, 
+            READ_ANGLE, 
+            READ_ENCODER
+        },
         .super_interface = MAIN_MENU,
-        .subinterface = {BOOT_MENU, PID_CONTROL_MENU, SENSOR_MENU},
+        .subinterface = {
+            BOOT_MENU, 
+            PID_CONTROL_MENU, 
+            SENSOR_MENU
+        },
     },    
     [BOOT_MENU] = {             // 启动界面
         .ID = BOOT_MENU,
-        .option_count = 5,
-        .option_text = {"Mode 1", "Mode 2", "Mode 3", "Mode 4", "Mode 5"},
-        .option_mode = {INTERACTIBLE, INTERACTIBLE, INTERACTIBLE, INTERACTIBLE, INTERACTIBLE},
-        .option_action = {BOOT_MODE_1, BOOT_MODE_2, BOOT_MODE_3, BOOT_MODE_4, BOOT_MODE_5},
+        .option_count = 7,
+        .option_text = {
+            "Boot Mode 1", 
+            "Boot Mode 2", 
+            "Boot Mode 3", 
+            "Boot Mode 4", 
+            "Boot Mode 5", 
+            "P / Y", 
+            "L / R"
+        },
+        .option_mode = {
+            INTERACTIBLE, 
+            INTERACTIBLE, 
+            INTERACTIBLE, 
+            SUBINTERFACE, 
+            INTERACTIBLE, 
+            READ_ANGLE, 
+            READ_ENCODER
+        },
+        .option_action = {
+            BOOT_MODE_1, 
+            BOOT_MODE_2, 
+            BOOT_MODE_3, 
+            NON_EVENT, 
+            BOOT_MODE_5
+        },
         .super_interface = MAIN_MENU,
+        .subinterface = {
+            NONE_MENU, 
+            NONE_MENU, 
+            NONE_MENU, 
+            BOOT_4_MENU
+        },
     },
-    [SENSOR_MENU] = {             // SENSOR权重界面
-        .ID = SENSOR_MENU,
-        .option_count = 5,
-        .option_text = {"this wont save", "L1", "L2", "L3", "L4"},
-        .option_mode = {PURE_TEXT ,EDITABLE, EDITABLE, EDITABLE, EDITABLE},
-        .option_value = {-1, 10, 30, 50, 80},
-        .value_range = {100, 100, 100},
-        .super_interface = MAIN_MENU,
+    [BOOT_4_MENU] = {             // 模式4界面
+        .ID = BOOT_4_MENU,
+        .option_count = 4,
+        .option_text = {
+            "Record", 
+            "Replay", 
+            "P / Y", 
+            "L / R"
+        },
+        .option_mode = {
+            INTERACTIBLE, 
+            INTERACTIBLE, 
+            READ_ANGLE, 
+            READ_ENCODER
+        },
+        .option_action = {
+            BOOT_MODE_4_RECORD, 
+            BOOT_MODE_4_REPLAY
+        },
+        .super_interface = BOOT_MENU,
     },
     [PID_CONTROL_MENU] = {             // PID界面
         .ID = PID_CONTROL_MENU,
         .option_count = 4,
-        .option_text = {"Stand PID", "Speed PID", "Turning PID", "Sensor PID"},
-        .option_mode = {SUBINTERFACE, SUBINTERFACE, SUBINTERFACE, SUBINTERFACE},
+        .option_text = {
+            "Stand PID", 
+            "Speed PID", 
+            "Turning PID", 
+            "Sensor PID"
+        },
+        .option_mode = {
+            SUBINTERFACE, 
+            SUBINTERFACE, 
+            SUBINTERFACE, 
+            SUBINTERFACE
+        },
         .super_interface = MAIN_MENU,
-        .subinterface = {STAND_PID_MENU, SPEED_PID_MENU, TURNING_PID_MENU, SENSOR_PID_MENU},
+        .subinterface = {
+            STAND_PID_MENU, 
+            SPEED_PID_MENU, 
+            TURNING_PID_MENU, 
+            SENSOR_PID_MENU
+        },
     },
     [STAND_PID_MENU] = {             // Stand PID界面
         .ID = STAND_PID_MENU,
         .option_count = 7,
-        .option_text = {"Stand kP", "Stand kI", "Stand kD", "", "kP save", "kI save", "kD save"},
-        .option_mode = {EDITABLE, EDITABLE, EDITABLE, PURE_TEXT, READ_FLASH, READ_FLASH, READ_FLASH},
+        .option_text = {
+            "Stand kP", 
+            "Stand kI", 
+            "Stand kD", 
+            "====x100====", 
+            "kP save", 
+            "kI save", 
+            "kD save"
+        },
+        .option_mode = {
+            EDITABLE, 
+            EDITABLE, 
+            EDITABLE, 
+            PURE_TEXT, 
+            READ_FLASH, 
+            READ_FLASH, 
+            READ_FLASH
+        },
         .option_value = {10, 10, 10, -1, 1, 1, 1},
         .value_range = {100, 100, 100},
         .super_interface = PID_CONTROL_MENU,
@@ -57,8 +144,24 @@ Interface_TypeDef interface[100] = {
     [SPEED_PID_MENU] = {             // Speed PID界面
         .ID = SPEED_PID_MENU,
         .option_count = 7,
-        .option_text = {"Speed kP", "Speed kI", "Speed kD", "", "kP save", "kI save", "kD save"},
-        .option_mode = {EDITABLE, EDITABLE, EDITABLE, PURE_TEXT, READ_FLASH, READ_FLASH, READ_FLASH},
+        .option_text = {
+            "Speed kP", 
+            "Speed kI", 
+            "Speed kD", 
+            "=====x1=====", 
+            "kP save", 
+            "kI save", 
+            "kD save"
+        },
+        .option_mode = {
+            EDITABLE, 
+            EDITABLE, 
+            EDITABLE, 
+            PURE_TEXT, 
+            READ_FLASH, 
+            READ_FLASH, 
+            READ_FLASH
+        },
         .option_value = {10, 10, 10, -1, 0, 0, 0},
         .value_range = {100, 100, 100},
         .super_interface = PID_CONTROL_MENU,
@@ -66,20 +169,72 @@ Interface_TypeDef interface[100] = {
     [TURNING_PID_MENU] = {             // Turning PID界面
         .ID = TURNING_PID_MENU,
         .option_count = 7,
-        .option_text = {"Turn kP", "Turn kI", "Turn kD", "", "kP save", "kI save", "kD save"},
-        .option_mode = {EDITABLE, EDITABLE, EDITABLE, PURE_TEXT, READ_FLASH, READ_FLASH, READ_FLASH},
+        .option_text = {
+            "Turn kP", 
+            "Turn kI", 
+            "Turn kD", 
+            "=====x1=====", 
+            "kP save", 
+            "kI save", 
+            "kD save"
+        },
+        .option_mode = {
+            EDITABLE, 
+            EDITABLE, 
+            EDITABLE, 
+            PURE_TEXT, 
+            READ_FLASH, 
+            READ_FLASH, 
+            READ_FLASH
+        },
         .option_value = {10, 10, 10, -1, 0, 0, 0},
         .value_range = {100, 100, 100},
         .super_interface = PID_CONTROL_MENU,
     },
-    [SENSOR_PID_MENU] = {             // Turning PID界面
+    [SENSOR_PID_MENU] = {             // sensor PID界面
         .ID = SENSOR_PID_MENU,
         .option_count = 7,
-        .option_text = {"Sensr kP", "Sensr kI", "Sensr kD", "", "kP save", "kI save", "kD save"},
-        .option_mode = {EDITABLE, EDITABLE, EDITABLE, PURE_TEXT, READ_FLASH, READ_FLASH, READ_FLASH},
+        .option_text = {
+            "Sensr kP", 
+            "Sensr kI", 
+            "Sensr kD", 
+            "=====x1=====", 
+            "kP save", 
+            "kI save", 
+            "kD save"},
+        .option_mode = {
+            EDITABLE, 
+            EDITABLE, 
+            EDITABLE, 
+            PURE_TEXT,
+            READ_FLASH, 
+            READ_FLASH, 
+            READ_FLASH
+        },
         .option_value = {10, 10, 10, -1, 0, 0, 0},
         .value_range = {100, 100, 100},
         .super_interface = PID_CONTROL_MENU,
+    },
+    [SENSOR_MENU] = {             // SENSOR权重界面
+        .ID = SENSOR_MENU,
+        .option_count = 5,
+        .option_text = {
+            "this wont save", 
+            "level-1", 
+            "level-2", 
+            "level-3", 
+            "level-4"
+        },
+        .option_mode = {
+            PURE_TEXT, 
+            EDITABLE, 
+            EDITABLE, 
+            EDITABLE, 
+            EDITABLE
+        },
+        .option_value = {-1, 10, 30, 50, 80},
+        .value_range = {-1, 100, 100, 100, 100},
+        .super_interface = MAIN_MENU,
     },
 };
 
@@ -92,8 +247,11 @@ short                   current_option_index;           // 目前选的选项的
 short                   current_mode;                   // 目前的模式：EDIT_MODE 和 SELECT_MODE
 boot_mode               running_mode;                   // 车是否在某个状态运行中
 
+extern float pitch;
+extern float yaw;
+
 /* ==============================================================================================
-                                        函数定义
+                                        内部函数定义
    ============================================================================================== */
 
 /** 
@@ -123,23 +281,6 @@ void Menu_ReadFlashToValue(void)
     interface[TURNING_PID_MENU].option_value[1] = flash_union_buffer[1].int8_type; // I
     interface[TURNING_PID_MENU].option_value[2] = flash_union_buffer[2].int8_type; // D
     flash_buffer_clear();
-}
-
-/** 
- * @brief 菜单的初始化函数
- * @note 直接使用 `Menu_Init();` 即可
- * @return void
- */
-void Menu_Init(void)
-{
-	oled_init();
-    oled_set_dir(OLED_CROSSWISE);
-    oled_clear();
-    current_interface = MAIN_MENU;
-    current_option_index = 0;
-    current_mode = SELECT_MODE;
-    Menu_ReadFlashToValue();
-    Menu_Refresh();
 }
 
 /** 
@@ -177,44 +318,62 @@ void Menu_RefreshValue(void)
 }
 
 /** 
- * @brief 存数据
- * @note 都写在名字上了
+ * @brief 触发事件
+ * @note 对于那些启动项来说，就需要用到这个函数，一是要区分ID，二是要置标志位：`is_running` 和 `current_mode`
+ * @param action_id 详见 `interface` 内部的定义，注意这里是index
  * @return void
  */
-void Menu_SavePIDToFlash(void)
+void Menu_Event(EVENT_ID action_id)
 {
-    if (!(current_interface == STAND_PID_MENU || current_interface == SPEED_PID_MENU || current_interface == TURNING_PID_MENU || current_interface == SENSOR_PID_MENU)) {
-        return;
-    }
-    int page_index = 0;
-    switch (current_interface) {
-        case STAND_PID_MENU:
-            page_index = 0;
+    switch(action_id){
+        case BOOT_MODE_1:
+            running_mode = MODE_1;
+            current_mode = RUNNING;
             break;
-        case SPEED_PID_MENU:
-            page_index = 1;
+        case BOOT_MODE_2:
+            running_mode = MODE_2;
+            current_mode = RUNNING;
             break;
-        case TURNING_PID_MENU:
-            page_index = 2;
+        case BOOT_MODE_3:
+            running_mode = MODE_3;
+            current_mode = RUNNING;
             break;
-        case SENSOR_PID_MENU:
-            page_index = 3;
+        case BOOT_MODE_4_RECORD:
+            running_mode = MODE_4_RECORD;
+            current_mode = RUNNING;
+            break;
+        case BOOT_MODE_4_REPLAY:
+            running_mode = MODE_4_REPLAY;
+            current_mode = RUNNING;
+            break;
+        case BOOT_MODE_5:
+            running_mode = MODE_5;
+            current_mode = RUNNING;
             break;
         default:
             break;
     }
-    // 一个PID数据存一个区，4个页里面占3个，现在是Stand PID
-    if (flash_check(127, page_index)) {
-        flash_erase_page(127, page_index);     // P
-    } 
-    flash_buffer_clear();
-    // 清缓存，写缓存，发缓存
-    flash_union_buffer[0].int8_type = interface[current_interface].option_value[0]; // P
-    flash_union_buffer[1].int8_type = interface[current_interface].option_value[1]; // I
-    flash_union_buffer[2].int8_type = interface[current_interface].option_value[2]; // D
-    flash_write_page_from_buffer(127, page_index);
-    // 存储完成
-    oled_show_string(80, 6, "SAVED");
+}
+
+/* ==============================================================================================
+                                        外部函数定义
+   ============================================================================================== */
+
+/** 
+ * @brief 菜单的初始化函数
+ * @note 直接使用 `Menu_Init();` 即可
+ * @return void
+ */
+void Menu_Init(void)
+{
+	oled_init();
+    oled_set_dir(OLED_CROSSWISE);
+    oled_clear();
+    current_interface = MAIN_MENU;
+    current_option_index = 0;
+    current_mode = SELECT_MODE;
+    Menu_ReadFlashToValue();
+    Menu_Refresh();
 }
 
 /** 
@@ -255,43 +414,77 @@ void Menu_Refresh(void)
     for (int i = 0; i < CURRENT_OPTION_COUNT; i++) {
         if (interface[current_interface].option_mode[i] == EDITABLE || interface[current_interface].option_mode[i] == READ_FLASH) {
             oled_show_float(60, i, interface[current_interface].option_value[i] / 10.0f, 2, 1);
+        } else if (interface[current_interface].option_mode[i] == READ_ANGLE) {
+            oled_show_float(60, i, pitch, 3, 1);
+            oled_show_float(100, i, yaw, 3, 1);
+        } else if (interface[current_interface].option_mode[i] == READ_ENCODER) {
+            oled_show_int(60, i, LEFT_ENCODER, 3);
+            oled_show_int(100, i, RIGHT_ENCODER, 3);
         }
     }
 
 }
 
 /** 
- * @brief 触发事件
- * @note 对于那些启动项来说，就需要用到这个函数，一是要区分ID，二是要置标志位：`is_running` 和 `current_mode`
- * @param action_id 详见 `interface` 内部的定义，注意这里是index
+ * @brief 我一看，哇，数据怎么都不动，原来是我屏幕没刷新
+ * @note 你应该把这个放在某个中断里
  * @return void
  */
-void Menu_Event(EVENT_ID action_id)
+void Menu_JustRefreshValue(void)
 {
-    switch(action_id){
-        case BOOT_MODE_1:
-            running_mode = MODE_1;
-            current_mode = RUNNING;
+    // 显示数据
+    for (int i = 0; i < CURRENT_OPTION_COUNT; i++) {
+        if (interface[current_interface].option_mode[i] == EDITABLE || interface[current_interface].option_mode[i] == READ_FLASH) {
+            oled_show_float(60, i, interface[current_interface].option_value[i] / 10.0f, 2, 1);
+        } else if (interface[current_interface].option_mode[i] == READ_ANGLE) {
+            oled_show_float(60, i, pitch, 3, 1);
+            oled_show_float(100, i, yaw, 3, 1);
+        } else if (interface[current_interface].option_mode[i] == READ_ENCODER) {
+            oled_show_int(60, i, LEFT_ENCODER, 3);
+            oled_show_int(100, i, RIGHT_ENCODER, 3);
+        }
+    }  
+}
+
+/** 
+ * @brief 存数据
+ * @note 都写在名字上了
+ * @return void
+ */
+void Menu_SavePIDToFlash(void)
+{
+    if (!(current_interface == STAND_PID_MENU || current_interface == SPEED_PID_MENU || current_interface == TURNING_PID_MENU || current_interface == SENSOR_PID_MENU)) {
+        return;
+    }
+    int page_index = 0;
+    switch (current_interface) {
+        case STAND_PID_MENU:
+            page_index = 0;
             break;
-        case BOOT_MODE_2:
-            running_mode = MODE_2;
-            current_mode = RUNNING;
+        case SPEED_PID_MENU:
+            page_index = 1;
             break;
-        case BOOT_MODE_3:
-            running_mode = MODE_3;
-            current_mode = RUNNING;
+        case TURNING_PID_MENU:
+            page_index = 2;
             break;
-        case BOOT_MODE_4:
-            running_mode = MODE_4;
-            current_mode = RUNNING;
-            break;
-        case BOOT_MODE_5:
-            running_mode = MODE_5;
-            current_mode = RUNNING;
+        case SENSOR_PID_MENU:
+            page_index = 3;
             break;
         default:
             break;
     }
+    // 一个PID数据存一个区，4个页里面占3个，现在是Stand PID
+    if (flash_check(127, page_index)) {
+        flash_erase_page(127, page_index);     // P
+    } 
+    flash_buffer_clear();
+    // 清缓存，写缓存，发缓存
+    flash_union_buffer[0].int8_type = interface[current_interface].option_value[0]; // P
+    flash_union_buffer[1].int8_type = interface[current_interface].option_value[1]; // I
+    flash_union_buffer[2].int8_type = interface[current_interface].option_value[2]; // D
+    flash_write_page_from_buffer(127, page_index);
+    // 存储完成
+    oled_show_string(100, 6, "SVD");
 }
 
 /** 

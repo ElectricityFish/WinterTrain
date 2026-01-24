@@ -35,19 +35,17 @@ void PID_Update(PID_t *p)			//一般PID函数
 	p->Actual1=p->Actual;
 }
 
-
-
 float TracePID_Update(void)				//循迹PID函数
 {
 
     static float Current_Error,Previous_Error,Error_Sum;
 	static float kp,ki,kd;
 	float PID_Out;
+
+	kp = 
 	
-	
-        Previous_Error=Current_Error;
-        Current_Error=Sensor_GetError();
-       
+        Previous_Error = Current_Error;
+        Current_Error = Sensor_GetError();
 
         Error_Sum+=Current_Error;
 

@@ -38,12 +38,12 @@ int main (void)
     while(1)
     {
 		
-//		uint8_t Right=Right0;
+		uint8_t Right=Right0;
 //		oled_show_uint(0,0,Right,1);
 		
 		
-		oled_show_int(0,0,Speed1,5);
-		oled_show_int(0,2,Speed2,5);
+		oled_show_int(0,0,Right,5);
+		
         
 
       
@@ -61,7 +61,7 @@ void pit_handler (void)
 	Encoder_Clear();
 	
 	Promopt(3);
-	Promopt(4);
+	//Promopt(4);
 }
 
 

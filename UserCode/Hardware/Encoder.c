@@ -13,10 +13,11 @@
 void Encoder_Init(void)
 {
 	encoder_quad_init(ENCODER_QUADDEC1, ENCODER_QUADDEC_A1, ENCODER_QUADDEC_B1);   // 初始化编码器模块与引脚 正交解码编码器模式
-	encoder_quad_init(ENCODER_QUADDEC2, ENCODER_QUADDEC_A2, ENCODER_QUADDEC_B2);   // 初始化编码器模块与引脚 正交解码编码器模式
-
 	encoder_clear_count(ENCODER_QUADDEC1);
+	encoder_quad_init(ENCODER_QUADDEC2, ENCODER_QUADDEC_A2, ENCODER_QUADDEC_B2);   // 初始化编码器模块与引脚 正交解码编码器模式
 	encoder_clear_count(ENCODER_QUADDEC2);
+	
+	
 	
 
 }

@@ -1247,6 +1247,16 @@
               <FileType>5</FileType>
               <FilePath>..\Hardware\Encoder.h</FilePath>
             </File>
+            <File>
+              <FileName>Sensor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\Sensor.c</FilePath>
+            </File>
+            <File>
+              <FileName>Sensor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Hardware\Sensor.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

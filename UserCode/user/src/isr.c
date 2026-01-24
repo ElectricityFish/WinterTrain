@@ -46,7 +46,7 @@ float gyro_yaw = 0, gyro_pitch = 0, gyro_roll = 0;
 float acc_yaw = 0, acc_pitch = 0, acc_roll = 0;
 int16 AX, AY, AZ;
 float Offset;
-extern float yaw, pitch, roll;
+extern float yaw, pitch;
 extern KalmanFilter KF;
 
 void TIM1_UP_IRQHandler (void)
@@ -75,12 +75,6 @@ void TIM1_UP_IRQHandler (void)
 	AZ = mpu6050_acc_z / 100 * 100;
 	pitch = calculatePitchAngle(AX, AY, AZ, (mpu6050_gyro_y / 100 * 100) , 0.01, &KF)-Offset;
 	
-	//roll角解算（加速度计校准）
-	//使用互补滤波
-	mpu6050_gyro_x += 220;
-	gyro_roll += (mpu6050_gyro_transition(mpu6050_gyro_x / 100 * 100) * 0.001);
-	acc_roll = atan2(mpu6050_acc_transition(mpu6050_acc_y / 100 * 100) * 0.001, mpu6050_acc_transition(mpu6050_acc_z / 100 * 100) * 0.001);
-	roll = (1 - Alpha) * gyro_roll + Alpha * acc_roll;
     // 此处编写用户代码
     TIM1->SR &= ~TIM1->SR;                                                      // 清空中断状态
 }

@@ -1,5 +1,5 @@
-#ifndef __TURN_CONTROL_H
-#define __TURN_CONTROL_H
+#ifndef __PID_H
+#define __PID_H
 
 typedef struct {
 	float Target;
@@ -16,9 +16,8 @@ typedef struct {
 	
 	float OutMax;
 	float OutMin;
-} Turn_PID;
+} PID_t;
 
-void Turn_pid_UpdatePID(void);
-float turn_angle(uint16_t angle);
+void PID_Update(PID_t *p);
 
 #endif

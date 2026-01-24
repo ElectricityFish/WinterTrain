@@ -46,7 +46,7 @@ float TracePID_Update(void)				//循迹PID函数
 	
 	
         Previous_Error=Current_Error;
-        Current_Error=Sensor_Get_Error();
+        Current_Error=Sensor_GetError();
        
 
         Error_Sum+=Current_Error;

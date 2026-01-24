@@ -23,7 +23,7 @@ int main (void)
     debug_init();                                                               // 初始化默认 Debug UART
 	
 	BuzzerAndLED_Init();
-	pit_ms_init(TIM6_PIT, 1);                                                      // 初始化 PIT 为周期中断 1ms 周期
+	pit_ms_init(TIM6_PIT, 1);                                            // 初始化 PIT 为周期中断 1ms 周期
     interrupt_set_priority(TIM6_IRQn, 0);                                // 设置 PIT 对周期中断的中断优先级为 0
 	
 	
@@ -36,21 +36,12 @@ int main (void)
     key_init(10);
 	Menu_Init();//初始化菜单，内含OLED初始化
 
+	
     while(1)
     {	
-		system_delay_ms(10);
-        key_scanner();
-        if (key_get_state(KEY_4) == KEY_SHORT_PRESS) {
-            Menu_Up();
-        } else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) {
-            Menu_Down();
-        } else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) {
-            Menu_Forward();
-        } else if (key_get_state(KEY_1) == KEY_SHORT_PRESS) {
-            Menu_Backward();
-        } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
-            Menu_SavePIDToFlash();
-        }
+		oled_show_float(0,5,pitch,3,2);
+		oled_show_float(0,7,yaw,3,2);
+		oled_show_int(50,5,mpu6050_acc_x,4);
     }
 
       
@@ -63,17 +54,41 @@ int main (void)
 void pit_handler (void)
 {
 
-	static uint8_t Count=0;
-	Count++;
-
-	if(Count>=10)//每10ms进行一次姿态解算
+	static uint8_t Count0=0;
+	static uint8_t Count1=5; //初始值不同进行错峰更新
+	static uint8_t Count2=0;
+	Count0++;
+	Count1++;
+	Count2++;
+	
+	
+	if(Count1>=10)//每10ms进行一次菜单更新
 	{
-		Count = 0;
+		Count1=0;
+		key_scanner();
+		if (key_get_state(KEY_4) == KEY_SHORT_PRESS) {
+            Menu_Up();
+        } else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) {
+            Menu_Down();
+        } else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) {
+            Menu_Forward();
+        } else if (key_get_state(KEY_1) == KEY_SHORT_PRESS) {
+            Menu_Backward();
+        } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
+            Menu_SavePIDToFlash();
+        }
+		
+	}
+	
+	if(Count0>=10)//每10ms进行一次姿态解算
+	{
+		
+		
+		Count0 = 0;
 		mpu6050_get_gyro();
 		mpu6050_get_acc();
 		
 		//姿态解算，使用卡尔曼滤波算法
-		float Alpha = 0.001;
 		
 		//yaw角解算（无加速度计校准）
 		gyro_yaw += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
@@ -87,9 +102,14 @@ void pit_handler (void)
 		pitch = calculatePitchAngle(AX, AY, AZ, (mpu6050_gyro_y / 100 * 100) , 0.01, &KF)-Offset;
 	}
 	
-	Speed2=Get_Count2();
-	Speed1=Get_Count1();
-	Encoder_Clear();
+	if(Count2>=50)//每50ms获取一次编码器计数值
+	{
+		Speed2=Get_Count2();
+		Speed1=Get_Count1();
+		Encoder_Clear();
+		Count2=0;
+
+	}
 
 
 	

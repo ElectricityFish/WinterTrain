@@ -35,11 +35,11 @@ Interface_TypeDef interface[100] = {
         .option_mode = {PURE_TEXT ,EDITABLE, EDITABLE, EDITABLE, EDITABLE},
         .option_value = {-1, 10, 30, 50, 80},
         .value_range = {100, 100, 100},
-        .super_interface = PID_CONTROL_MENU,
+        .super_interface = MAIN_MENU,
     },
     [PID_CONTROL_MENU] = {             // PID界面
         .ID = PID_CONTROL_MENU,
-        .option_count = 3,
+        .option_count = 4,
         .option_text = {"Stand PID", "Speed PID", "Turning PID", "Sensor PID"},
         .option_mode = {SUBINTERFACE, SUBINTERFACE, SUBINTERFACE, SUBINTERFACE},
         .super_interface = MAIN_MENU,

@@ -1226,9 +1226,33 @@
         </Group>
         <Group>
           <GroupName>HardWare</GroupName>
+          <Files>
+            <File>
+              <FileName>sensor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\sensor.c</FilePath>
+            </File>
+            <File>
+              <FileName>sensor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Hardware\sensor.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>System</GroupName>
+          <Files>
+            <File>
+              <FileName>sensor_pid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\sensor_pid.h</FilePath>
+            </File>
+            <File>
+              <FileName>sensor_pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\sensor_pid.c</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>

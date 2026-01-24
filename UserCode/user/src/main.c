@@ -60,6 +60,7 @@
 #include "zf_device_mpu6050.h"
 #include "zf_driver_pit.h"
 #include "zf_driver_delay.h"
+#include "zf_device_bluetooth_ch9141.h"
 #include "Kfilter.h"
 
 #define LED1                    (H2 )
@@ -112,12 +113,12 @@ int main (void)
 	//初始化卡尔曼滤波
 	/*
 		在中断（1ms）中计算，中断在 @isr.c 文件中的 @void TIM1_UP_IRQHandler (void)
-		
+		roll角还有问题，我有空会优化的
 	*/
 	Kalman_Init(&KF,0.0001f,0.003f,0.03f);
 	
-	//串口初始化
-	
+	//蓝牙串口初始化
+	bluetooth_ch9141_init();
 	
     // 此处编写用户代码 例如外设初始化代码等
 

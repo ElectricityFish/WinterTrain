@@ -78,6 +78,7 @@ float getAccelAngle(float ax, float ay, float az) {
     // 这里注意：根据MPU6050的安装方向，可能需要调整符号
     return -atan2(ax, sqrt(ay*ay + az*az)) * 180.0f / 3.14159;
 }
+
 /*
 atan2(ax, sqrt(ay*ay + az*az)) * 180.0f / 3.14159相比于atan2(ax,az)可以解除x轴与y轴加速度的耦合
 解耦机制：通过投影到Y-Z平面，将Roll角的影响从Pitch角计算中分离

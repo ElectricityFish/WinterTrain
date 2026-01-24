@@ -52,12 +52,17 @@ extern KalmanFilter KF;
 void TIM1_UP_IRQHandler (void)
 {
     // 此处编写用户代码
+	//处理零漂
+	mpu6050_gyro_x -= 443;
+	mpu6050_gyro_y -= 10;
+	mpu6050_gyro_z += 8;
+	
 	//中断中获取角速度和加速度（1ms）
 	mpu6050_get_gyro();
 	mpu6050_get_acc();
 	
 	//姿态解算，使用卡尔曼滤波算法
-	float Alpha = 0.001;
+	float Alpha = 0.00001;
 	
 	//yaw角解算（无加速度计校准）
 	gyro_yaw += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
@@ -72,8 +77,9 @@ void TIM1_UP_IRQHandler (void)
 	
 	//roll角解算（加速度计校准）
 	//使用互补滤波
-	gyro_roll += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
-	acc_roll = atan2(mpu6050_acc_transition(mpu6050_acc_y / 100 * 100) * 0.001, mpu6050_acc_transition(mpu6050_acc_z / 100 * 100) * 0.001) / 3.14159 * 180;
+	mpu6050_gyro_x += 220;
+	gyro_roll += (mpu6050_gyro_transition(mpu6050_gyro_x / 100 * 100) * 0.001);
+	acc_roll = atan2(mpu6050_acc_transition(mpu6050_acc_y / 100 * 100) * 0.001, mpu6050_acc_transition(mpu6050_acc_z / 100 * 100) * 0.001);
 	roll = (1 - Alpha) * gyro_roll + Alpha * acc_roll;
     // 此处编写用户代码
     TIM1->SR &= ~TIM1->SR;                                                      // 清空中断状态

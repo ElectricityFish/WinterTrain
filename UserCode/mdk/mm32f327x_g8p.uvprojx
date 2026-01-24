@@ -1226,9 +1226,83 @@
         </Group>
         <Group>
           <GroupName>HardWare</GroupName>
+          <Files>
+            <File>
+              <FileName>Motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\Motor.c</FilePath>
+            </File>
+            <File>
+              <FileName>Motor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Hardware\Motor.h</FilePath>
+            </File>
+            <File>
+              <FileName>Encoder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\Encoder.c</FilePath>
+            </File>
+            <File>
+              <FileName>Encoder.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Hardware\Encoder.h</FilePath>
+            </File>
+            <File>
+              <FileName>Sensor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\Sensor.c</FilePath>
+            </File>
+            <File>
+              <FileName>Sensor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Hardware\Sensor.h</FilePath>
+            </File>
+            <File>
+              <FileName>BuzzerAndLED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\BuzzerAndLED.c</FilePath>
+            </File>
+            <File>
+              <FileName>BuzzerAndLED.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Hardware\BuzzerAndLED.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>System</GroupName>
+          <Files>
+            <File>
+              <FileName>PID.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\PID.c</FilePath>
+            </File>
+            <File>
+              <FileName>PID.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\PID.h</FilePath>
+            </File>
+            <File>
+              <FileName>menu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\menu.c</FilePath>
+            </File>
+            <File>
+              <FileName>menu.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\menu.h</FilePath>
+            </File>
+            <File>
+              <FileName>Kfilter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\Kfilter.c</FilePath>
+            </File>
+            <File>
+              <FileName>Kfilter.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\Kfilter.h</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>

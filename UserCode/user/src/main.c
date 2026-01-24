@@ -1,132 +1,121 @@
-/*********************************************************************************************************************
-* MM32F327X-G8P Opensourec Library 即（MM32F327X-G8P 开源库）是一个基于官方 SDK 接口的第三方开源库
-* Copyright (c) 2022 SEEKFREE 逐飞科技
-* 
-* 本文件是 MM32F327X-G8P 开源库的一部分
-* 
-* MM32F327X-G8P 开源库 是免费软件
-* 您可以根据自由软件基金会发布的 GPL（GNU General Public License，即 GNU通用公共许可证）的条款
-* 即 GPL 的第3版（即 GPL3.0）或（您选择的）任何后来的版本，重新发布和/或修改它
-* 
-* 本开源库的发布是希望它能发挥作用，但并未对其作任何的保证
-* 甚至没有隐含的适销性或适合特定用途的保证
-* 更多细节请参见 GPL
-* 
-* 您应该在收到本开源库的同时收到一份 GPL 的副本
-* 如果没有，请参阅<https://www.gnu.org/licenses/>
-* 
-* 额外注明：
-* 本开源库使用 GPL3.0 开源许可证协议 以上许可申明为译文版本
-* 许可申明英文版在 libraries/doc 文件夹下的 GPL3_permission_statement.txt 文件中
-* 许可证副本在 libraries 文件夹下 即该文件夹下的 LICENSE 文件
-* 欢迎各位使用并传播本程序 但修改内容时必须保留逐飞科技的版权声明（即本声明）
-* 
-* 文件名称          main
-* 公司名称          成都逐飞科技有限公司
-* 版本信息          查看 libraries/doc 文件夹内 version 文件 版本说明
-* 开发环境          IAR 8.32.4 or MDK 5.37
-* 适用平台          MM32F327X_G8P
-* 店铺链接          https://seekfree.taobao.com/
-* 
-* 修改记录
-* 日期              作者                备注
-* 2022-08-10        Teternal            first version
-********************************************************************************************************************/
-
 #include "zf_common_headfile.h"
+#include "Motor.h"
+#include "Encoder.h"
+#include "Sensor.h"
+#include "BuzzerAndLED.h"
+#include "Kfilter.h"
+#include "menu.h"
 
 
-// *************************** 例程测试说明 ***************************
-// 1.核心板烧录完成本例程 完成上电
-// 
-// 2.可以看到核心板上两个 LED 呈流水灯状闪烁
-// 
-// 3.将 SWITCH1 / SWITCH2 两个宏定义对应的引脚分别按照 00 01 10 11 的组合接到 1-VCC 0-GND 或者波动对应主板的拨码开关
-// 
-// 3.不同的组合下 两个 LED 流水灯状闪烁的频率会发生变化
-// 
-// 4.将 KEY1 / KEY2 / KEY3 / KEY4 两个宏定义对应的引脚接到 1-VCC 0-GND 或者 按对应按键
-// 
-// 5.任意引脚接 GND 或者 按键按下会使得两个 LED 一起闪烁 松开后恢复流水灯
-// 
-// 如果发现现象与说明严重不符 请参照本文件最下方 例程常见问题说明 进行排查
+float gyro_yaw = 0, gyro_pitch = 0, gyro_roll = 0;
+float acc_yaw = 0, acc_pitch = 0, acc_roll = 0;
+int16 AX, AY, AZ;
+float Offset;
+float yaw, pitch, roll;
+KalmanFilter KF;
 
 
-// **************************** 代码区域 ****************************
-#define LED1                    (H2 )
-#define LED2                    (B13)
-
-#define KEY1                    (E2 )
-#define KEY2                    (E3 )
-#define KEY3                    (E4 )
-#define KEY4                    (E5 )
-
-#define SWITCH1                 (D3 )
-#define SWITCH2                 (D4 )
-
-
-
+int16_t Speed1;
+int16_t Speed2;
 int main (void)
 {
     clock_init(SYSTEM_CLOCK_120M);                                              // 初始化芯片时钟 工作频率为 120MHz
     debug_init();                                                               // 初始化默认 Debug UART
-
-    // 此处编写用户代码 例如外设初始化代码等
-    uint16 delay_time = 0;
 	
+	BuzzerAndLED_Init();
+	pit_ms_init(TIM6_PIT, 1);                                            // 初始化 PIT 为周期中断 1ms 周期
+    interrupt_set_priority(TIM6_IRQn, 0);                                // 设置 PIT 对周期中断的中断优先级为 0
+	
+	
+	Motor_Init();
+	Encoder_Init();
+	Sensor_Init();
+    
 
-    gpio_init(LED1, GPO, GPIO_HIGH, GPO_PUSH_PULL);                             // 初始化 LED1 输出 默认高电平 推挽输出模式
-    gpio_init(LED2, GPO, GPIO_HIGH, GPO_PUSH_PULL);                             // 初始化 LED2 输出 默认高电平 推挽输出模式
-
-    gpio_init(KEY1, GPI, GPIO_HIGH, GPI_PULL_UP);                               // 初始化 KEY1 输入 默认高电平 上拉输入
-    gpio_init(KEY2, GPI, GPIO_HIGH, GPI_PULL_UP);                               // 初始化 KEY2 输入 默认高电平 上拉输入
-    gpio_init(KEY3, GPI, GPIO_HIGH, GPI_PULL_UP);                               // 初始化 KEY3 输入 默认高电平 上拉输入
-    gpio_init(KEY4, GPI, GPIO_HIGH, GPI_PULL_UP);                               // 初始化 KEY4 输入 默认高电平 上拉输入
-
-    gpio_init(SWITCH1, GPI, GPIO_HIGH, GPI_FLOATING_IN);                        // 初始化 SWITCH1 输入 默认高电平 浮空输入
-    gpio_init(SWITCH2, GPI, GPIO_HIGH, GPI_FLOATING_IN);                        // 初始化 SWITCH2 输入 默认高电平 浮空输入
-    // 此处编写用户代码 例如外设初始化代码等
-
+	Kalman_Init(&KF,0.0001f,0.003f,0.03f);
+    key_init(10);
+	Menu_Init();//初始化菜单，内含OLED初始化
+	mpu6050_init();
+	
     while(1)
-    {
-        // 此处编写需要循环执行的代码
-        delay_time = 100;                                                       // 延时时间复位
-        if(!gpio_get_level(SWITCH1))                                            // 获取 SWITCH1 电平为低
-        {
-            delay_time *= 2;                                                    // 延时时间翻 2 倍
-        }
-        if(!gpio_get_level(SWITCH2))                                            // 获取 SWITCH1 电平为低
-        {
-            delay_time *= 4;                                                    // 延时时间翻 4 倍
-        }
-
-        if( !gpio_get_level(KEY1) || !gpio_get_level(KEY2) || \
-            !gpio_get_level(KEY3) || !gpio_get_level(KEY4) )                    // 获取 KEYx 电平为低
-        {
-            gpio_set_level(LED1, GPIO_HIGH);
-            gpio_set_level(LED2, GPIO_HIGH);
-            while(1)
-            {
-                if( gpio_get_level(KEY1) && gpio_get_level(KEY2) && \
-                    gpio_get_level(KEY3) && gpio_get_level(KEY4) )              // 获取 KEYx 电平为高
-                {
-                    break;
-                }
-
-                system_delay_ms(500);                                           // 延时
-                gpio_toggle_level(LED2);                                        // 翻转 LED 引脚输出电平 控制 LED 亮灭
-                gpio_toggle_level(LED1);                                        // 翻转 LED 引脚输出电平 控制 LED 亮灭
-            }
-            gpio_set_level(LED1, GPIO_HIGH);
-            gpio_set_level(LED2, GPIO_LOW);
-        }
-
-        system_delay_ms(delay_time);                                            // 延时
-        gpio_toggle_level(LED1);                                                // 翻转 LED 引脚输出电平 控制 LED 亮灭
-        system_delay_ms(delay_time);                                            // 延时
-        gpio_toggle_level(LED2);                                                // 翻转 LED 引脚输出电平 控制 LED 亮灭
-        // 此处编写需要循环执行的代码
+    {	
+		
     }
+
+      
+    
 }
-// **************************** 代码区域 ****************************
+
+
+
+
+void pit_handler (void)
+{
+
+	static uint8_t Count0=0;
+	static uint8_t Count1=5; //初始值不同进行错峰更新
+	static uint8_t Count2=0;
+	Count0++;
+	Count1++;
+	Count2++;
+	
+	
+	if(Count1>=10)//每10ms进行一次菜单更新
+	{
+		Count1=0;
+		key_scanner();
+		if (key_get_state(KEY_4) == KEY_SHORT_PRESS) {
+            Menu_Up();
+        } else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) {
+            Menu_Down();
+        } else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) {
+            Menu_Forward();
+        } else if (key_get_state(KEY_1) == KEY_SHORT_PRESS) {
+            Menu_Backward();
+        } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
+            Menu_SavePIDToFlash();
+        }
+		
+	}
+	
+	if(Count0>=10)//每10ms进行一次姿态解算
+	{
+		
+		
+		Count0 = 0;
+		mpu6050_get_gyro();
+		mpu6050_get_acc();
+		
+		//姿态解算，使用卡尔曼滤波算法
+		
+		//yaw角解算（无加速度计校准）
+		gyro_yaw += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
+		yaw = gyro_yaw;
+		
+		//pitch角解算（加速度计校准）
+		//加速度计简陋滤波
+		AX = mpu6050_acc_x / 100 * 100;
+		AY = mpu6050_acc_y / 100 * 100;
+		AZ = mpu6050_acc_z / 100 * 100;
+		pitch = calculatePitchAngle(AX, AY, AZ, (mpu6050_gyro_y / 100 * 100) , 0.01, &KF)-Offset;
+	}
+	
+	if(Count2>=50)//每50ms获取一次编码器计数值
+	{
+		Speed2=Get_Count2();
+		Speed1=Get_Count1();
+		Encoder_Clear();
+		Count2=0;
+
+	}
+
+
+	
+	
+	
+	
+	
+	
+}
+
 

@@ -20,7 +20,7 @@ Turn_PID turn_pid = {
 };
 
 //可以通过菜单调参
-void Turn_pid_UpdatePID(void)
+void turn_pid_UpdatePID(void)
 {
     turn_pid.Kp = Menu_GetValue(TURNING_PID_MENU, 0);
     turn_pid.Ki = Menu_GetValue(TURNING_PID_MENU, 1);

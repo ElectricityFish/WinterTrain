@@ -6,14 +6,15 @@
 #include "zf_common_headfile.h"
 #include "sensor.h"
 #include "sensor_pid.h"
+#include "menu.h"
 
 /* ==============================================================================================
                                         全局变量定义
    ============================================================================================== */
 
-double Sensor_Kp = 0.0f;
-double Sensor_Ki = 0.0f;
-double Sensor_Kd = 0.0f;
+double Sensor_Kp = 1.0f;
+double Sensor_Ki = 1.0f;
+double Sensor_Kd = 1.0f;
 
 double integral = 0.0f;
 double prev_error = 0.0f;
@@ -24,6 +25,17 @@ double output_limit = OUTPUT_MAX;
 /* ==============================================================================================
                                         函数定义
    ============================================================================================== */
+/**
+ * @brief 更新PID值
+ * @note 过渡
+ * @return 
+ */
+void Sensor_pid_UpdatePID(void)
+{
+    Sensor_Kp = Menu_GetValue(SENSOR_PID_MENU, 0);
+    Sensor_Ki = Menu_GetValue(SENSOR_PID_MENU, 1);
+    Sensor_Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
+}
 
 /**
  * @brief 由 `Sensor.h` 获得的 `Error` 计算 `差分值`
@@ -32,6 +44,7 @@ double output_limit = OUTPUT_MAX;
  */
 double Sensor_pid_calculate(void) 
 {
+    Sensor_pid_UpdatePID();
     int error = Sensor_GetError();
     // Proportional
     double proportional = Sensor_Kp * error;

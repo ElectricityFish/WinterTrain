@@ -1252,6 +1252,16 @@
               <FileType>1</FileType>
               <FilePath>..\System\sensor_pid.c</FilePath>
             </File>
+            <File>
+              <FileName>menu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\menu.c</FilePath>
+            </File>
+            <File>
+              <FileName>menu.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\menu.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

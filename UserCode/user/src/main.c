@@ -32,17 +32,17 @@ int main (void)
 	
 	
 	
-	Moto_SetPWM(1,3000);
-	Moto_SetPWM(2,3000);
+	Moto_SetPWM(1,8000);
+	Moto_SetPWM(2,8000);
 	
     while(1)
     {
 		
-		uint8_t Right=Right0;
-//		oled_show_uint(0,0,Right,1);
+		
+		oled_show_int(0,0,Speed1,3);
+		oled_show_int(0,2,Speed2,3);
 		
 		
-		oled_show_int(0,0,Right,5);
 		
         
 
@@ -60,7 +60,7 @@ void pit_handler (void)
 	Speed1=Get_Count1();///44.f/0.1/9.27666*21.35;
 	Encoder_Clear();
 	
-	Promopt(3);
+	//Promopt(3);
 	//Promopt(4);
 }
 

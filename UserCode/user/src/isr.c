@@ -34,15 +34,47 @@
 ********************************************************************************************************************/
 
 #include "isr.h"
+#include <math.h>
+#include "Kfilter.h"
 
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     TIM1 的定时器更新中断服务函数 启动 .s 文件定义 不允许修改函数名称
 //              默认优先级 修改优先级使用 interrupt_set_priority(TIM1_UP_IRQn, 1);
 //-------------------------------------------------------------------------------------------------------------------
+
+float gyro_yaw = 0, gyro_pitch = 0, gyro_roll = 0;
+float acc_yaw = 0, acc_pitch = 0, acc_roll = 0;
+int16 AX, AY, AZ;
+float Offset;
+extern float yaw, pitch, roll;
+extern KalmanFilter KF;
+
 void TIM1_UP_IRQHandler (void)
 {
     // 此处编写用户代码
-
+	//中断中获取角速度和加速度（1ms）
+	mpu6050_get_gyro();
+	mpu6050_get_acc();
+	
+	//姿态解算，使用卡尔曼滤波算法
+	float Alpha = 0.001;
+	
+	//yaw角解算（无加速度计校准）
+	gyro_yaw += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
+	yaw = gyro_yaw;
+	
+	//pitch角解算（加速度计校准）
+	//加速度计简陋滤波
+	AX = mpu6050_acc_x / 100 * 100;
+	AY = mpu6050_acc_y / 100 * 100;
+	AZ = mpu6050_acc_z / 100 * 100;
+	pitch = calculatePitchAngle(AX, AY, AZ, (mpu6050_gyro_y / 100 * 100) , 0.01, &KF)-Offset;
+	
+	//roll角解算（加速度计校准）
+	//使用互补滤波
+	gyro_roll += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
+	acc_roll = atan2(mpu6050_acc_transition(mpu6050_acc_y / 100 * 100) * 0.001, mpu6050_acc_transition(mpu6050_acc_z / 100 * 100) * 0.001) / 3.14159 * 180;
+	roll = (1 - Alpha) * gyro_roll + Alpha * acc_roll;
     // 此处编写用户代码
     TIM1->SR &= ~TIM1->SR;                                                      // 清空中断状态
 }
@@ -102,7 +134,7 @@ void TIM5_IRQHandler (void)
 void TIM6_IRQHandler (void)
 {
     // 此处编写用户代码
-
+	
     // 此处编写用户代码
     TIM6->SR &= ~TIM6->SR;                                                      // 清空中断状态
 }

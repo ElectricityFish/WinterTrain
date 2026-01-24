@@ -1229,6 +1229,18 @@
         </Group>
         <Group>
           <GroupName>System</GroupName>
+          <Files>
+            <File>
+              <FileName>Kfilter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\Kfilter.c</FilePath>
+            </File>
+            <File>
+              <FileName>Kfilter.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\Kfilter.h</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>

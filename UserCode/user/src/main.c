@@ -57,7 +57,10 @@
 #include "zf_device_oled.h"
 #include "zf_driver_timer.h"
 #include "zf_device_key.h"
-
+#include "zf_device_mpu6050.h"
+#include "zf_driver_pit.h"
+#include "zf_driver_delay.h"
+#include "Kfilter.h"
 
 #define LED1                    (H2 )
 #define LED2                    (B13)
@@ -71,6 +74,12 @@
 #define SWITCH2                 (D4 )
 
 
+float yaw = 0;
+float pitch = 0;
+float roll = 0;
+
+//使用卡尔曼滤波
+KalmanFilter KF;
 
 int main (void)
 {
@@ -81,38 +90,59 @@ int main (void)
 	oled_set_dir(OLED_CROSSWISE);
 	oled_init();
 	oled_set_font(OLED_6X8_FONT);
+	oled_clear();
 	
 	//初始化Timer
 	timer_init(TIM_1, TIMER_US);
 	timer_clock_enable(TIM_1);
 	uint16_t time = 0;
-	
-    // 此处编写用户代码 例如外设初始化代码等
-    uint16 delay_time = 0;
-	
-
-    gpio_init(LED1, GPO, GPIO_HIGH, GPO_PUSH_PULL);                             // 初始化 LED1 输出 默认高电平 推挽输出模式
-    gpio_init(LED2, GPO, GPIO_HIGH, GPO_PUSH_PULL);                             // 初始化 LED2 输出 默认高电平 推挽输出模式
-
-    gpio_init(KEY1, GPI, GPIO_HIGH, GPI_PULL_UP);                               // 初始化 KEY1 输入 默认高电平 上拉输入
-    gpio_init(KEY2, GPI, GPIO_HIGH, GPI_PULL_UP);                               // 初始化 KEY2 输入 默认高电平 上拉输入
-    gpio_init(KEY3, GPI, GPIO_HIGH, GPI_PULL_UP);                               // 初始化 KEY3 输入 默认高电平 上拉输入
-    gpio_init(KEY4, GPI, GPIO_HIGH, GPI_PULL_UP);                               // 初始化 KEY4 输入 默认高电平 上拉输入
-
-    gpio_init(SWITCH1, GPI, GPIO_HIGH, GPI_FLOATING_IN);                        // 初始化 SWITCH1 输入 默认高电平 浮空输入
-    gpio_init(SWITCH2, GPI, GPIO_HIGH, GPI_FLOATING_IN);                        // 初始化 SWITCH2 输入 默认高电平 浮空输入
-    // 此处编写用户代码 例如外设初始化代码等
-	
-	oled_clear();
 	timer_start(TIM_1);
+	
+	//初始化Key
+	key_init(1000);
+	uint8_t Key_flag;
+	uint16_t Key_num = 0;
+	
+	//初始化MPU6050
+	mpu6050_init();
+	
+	//初始化中断 （isr.c文件）
+	pit_ms_init(TIM1_PIT, 1);
+	
+	//初始化卡尔曼滤波
+	/*
+		在中断（1ms）中计算，中断在 @isr.c 文件中的 @void TIM1_UP_IRQHandler (void)
+		
+	*/
+	Kalman_Init(&KF,0.0001f,0.003f,0.03f);
+	
+	//串口初始化
+	
+	
+    // 此处编写用户代码 例如外设初始化代码等
 
     while(1)
     {
+		key_scanner();
+		
+		
         // 此处编写需要循环执行的代码
-		oled_show_string(0,0,"car_task1");
-		oled_show_string(0,1,"car_task2");
-		oled_show_string(0,2,"car_task3");
-		oled_show_string(0,3,"car_task4");
+		oled_show_string(0, 0,"Gyro     Acc");
+		oled_show_int(0, 1, mpu6050_gyro_x, 4);
+		oled_show_int(60, 1, mpu6050_acc_x, 4);
+		oled_show_int(0, 2, mpu6050_gyro_y, 4);
+		oled_show_int(60, 2, mpu6050_acc_y, 4);
+		oled_show_int(0, 3, mpu6050_gyro_z, 4);
+		oled_show_int(60, 3, mpu6050_acc_z, 4);
+		
+		oled_show_string(0,4,"Yaw:");
+		oled_show_string(0,5,"Pitch:");
+		oled_show_string(0,6,"Roll:");
+		oled_show_float(80,4,yaw,3,3);
+		oled_show_float(80,5,pitch,3,3);
+		oled_show_float(80,6,roll,3,3);
+		
+		
     }
 }
 // **************************** 代码区域 ****************************

@@ -30,18 +30,16 @@ int main (void)
 	Motor_Init();
 	Encoder_Init();
 	Sensor_Init();
-    mpu6050_init();
+    
 
 	Kalman_Init(&KF,0.0001f,0.003f,0.03f);
     key_init(10);
 	Menu_Init();//初始化菜单，内含OLED初始化
-
+	mpu6050_init();
 	
     while(1)
     {	
-		oled_show_float(0,5,pitch,3,2);
-		oled_show_float(0,7,yaw,3,2);
-		oled_show_int(50,5,mpu6050_acc_x,4);
+		
     }
 
       

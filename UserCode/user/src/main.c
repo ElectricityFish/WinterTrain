@@ -30,7 +30,7 @@ int main (void)
 	Motor_Init();
 	Encoder_Init();
 	Sensor_Init();
-    
+    mpu6050_init();
 
 	Kalman_Init(&KF,0.0001f,0.003f,0.03f);
     key_init(10);

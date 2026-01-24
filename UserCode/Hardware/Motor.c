@@ -1,4 +1,5 @@
 #include "zf_common_headfile.h"
+
 #define PWM_CH1                 (TIM5_PWM_CH1_A0)
 #define PWM_CH2                 (TIM5_PWM_CH2_A1)
 
@@ -8,12 +9,12 @@ void Motor_Init(void)
 	//逻辑电源初始化
 	
 	//CH1对应
-	gpio_init(A2, GPO, GPIO_LOW, GPO_PUSH_PULL);                             // 初始化 LED1 输出 默认高电平 推挽输出模式
-    gpio_init(A3, GPO, GPIO_LOW, GPO_PUSH_PULL);                             // 初始化 LED2 输出 默认高电平 推挽输出模式
+	gpio_init(A2, GPO, GPIO_LOW, GPO_PUSH_PULL);                             // 初始化输出 默认低电平 推挽输出模式
+    gpio_init(A3, GPO, GPIO_LOW, GPO_PUSH_PULL);                             // 初始化输出 默认低电平 推挽输出模式
 	
 	//CH2对应
-	gpio_init(B10, GPO, GPIO_LOW, GPO_PUSH_PULL);                             // 初始化 LED1 输出 默认高电平 推挽输出模式
-    gpio_init(B11, GPO, GPIO_LOW, GPO_PUSH_PULL);                             // 初始化 LED2 输出 默认高电平 推挽输出模式
+	gpio_init(B10, GPO, GPIO_LOW, GPO_PUSH_PULL);                             // 初始化输出 默认低电平 推挽输出模式
+    gpio_init(B11, GPO, GPIO_LOW, GPO_PUSH_PULL);                             // 初始化输出 默认低电平 推挽输出模式
 	
 	
 	pwm_init(PWM_CH1, 17000, 0);                                                // 初始化 PWM 通道 频率 17KHz 初始占空比 0%

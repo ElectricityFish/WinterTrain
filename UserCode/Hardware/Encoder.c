@@ -22,21 +22,22 @@ void Encoder_Init(void)
 }
 
 //encoder_get_count(ENCODER_QUADDEC);
-int16 Get_Count(uint8_t n)															//参数表示要查看哪一个编码器的（只能是1或2），调用函数后计数自动清0
+int16_t Get_Count1(void)															
 {
-	if(n==1){
-		encoder_clear_count(ENCODER_QUADDEC1);
-		return encoder_get_count(ENCODER_QUADDEC1);
-	}
+	 
+	return  encoder_get_count(ENCODER_QUADDEC1);
 	
-	if(n==2){
-		encoder_clear_count(ENCODER_QUADDEC2);
-		return encoder_get_count(ENCODER_QUADDEC2);
-	}
-	
-	
-	encoder_clear_count(ENCODER_QUADDEC1);
-	encoder_clear_count(ENCODER_QUADDEC2);
-	return 0;
 }
 
+int16_t Get_Count2(void)															
+{
+ 
+	return  encoder_get_count(ENCODER_QUADDEC2);
+	
+}
+
+void Encoder_Clear(void)
+{
+	encoder_clear_count(ENCODER_QUADDEC1);
+	encoder_clear_count(ENCODER_QUADDEC2);
+}

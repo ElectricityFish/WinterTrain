@@ -34,9 +34,9 @@ int16_t Sensor_Get_WeightError(void)//获取加权偏移误差
 	Error+=(-5)*Left2 ;
 	Error+=(-8)*Left3 ;
 	
-	Error+=Right0 ;
+	Error+=Right0;
 	Error+=3*Right1; 
-	Error+=5*Right2 ;
+	Error+=5*Right2;
 	Error+=8*Right3;	
 	
 	return Error;

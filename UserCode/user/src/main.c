@@ -21,9 +21,9 @@ float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 PID_t AnglePID={
-	.Kp=500.0,
+	.Kp=850.0,
 	.Ki=0.0,
-	.Kd=800.0,
+	.Kd=1400.0,
 	
 	.OutOffset=0.0,	//输出偏移值,让电机动起来的最小PWM
 	.Target=0.f,
@@ -53,6 +53,7 @@ PID_t TurnPID={
 	.OutMin=-0.0, 
 	
 };
+
 
 int main (void)
 {
@@ -113,13 +114,10 @@ void pit_handler (void)
         } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
             Menu_SavePIDToFlash();
         }
-		
 	}
 
 	if(Count0>=10)//每10ms进行一次姿态解算，和平衡态控制
 	{
-		
-		
 		Count0 = 0;
 		mpu6050_get_gyro();
 		mpu6050_get_acc();
@@ -142,7 +140,7 @@ void pit_handler (void)
 			//角度过大保护
 			if (pitch > 50 || pitch < -50)		
 			{
-				CarMode =IDLE;
+				CarMode =IDLE;	//让魏子尧写个保护
 				Motor_SetPWM(1,0);
 				Motor_SetPWM(2,0);
 			}
@@ -155,7 +153,6 @@ void pit_handler (void)
 			LeftPWM=AvePWM+DifPWM/2;
 			RightPWM=AvePWM-DifPWM/2;
 			
-			
 			if(LeftPWM>10000)LeftPWM=10000;else if(LeftPWM<-10000)LeftPWM=-10000;
 			if(RightPWM>10000)RightPWM=10000;else if(RightPWM<-10000)RightPWM=-10000;
 			Motor_SetPWM(1,LeftPWM);
@@ -166,21 +163,30 @@ void pit_handler (void)
 		}
 	}
 	
+	
 	if(Count2>=50)//每50ms获取一次编码器计数值
 	{
+		Count2=0;
+		
 		SpeedLeft=Get_Count2();
 		SpeedRight=Get_Count1();
 		Encoder_Clear();
-		Count2=0;
+		AveSpeed=(SpeedLeft+SpeedRight)/2.f;
+		DifSpeed=SpeedLeft-SpeedRight;
+		
+		if(CarMode!=IDLE)
+		{
+			//速度环
+			SpeedPID.Actual=AveSpeed;
+			PID_Update(&SpeedPID);
+			AnglePID.Target=SpeedPID.Out;
+			//转向环
+			TurnPID.Actual=DifSpeed;
+			PID_Update(&TurnPID);
+			DifPWM=TurnPID.Out;
+		}
 
 	}
-
-
-	
-	
-	
-	
-	
 	
 }
 

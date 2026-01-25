@@ -9,6 +9,9 @@
 #define CURRENT_OPTION_VALUE            (interface[current_interface].option_value[current_option_index])
 #define CURRENT_OPTION_VALUE_RANGE      (interface[current_interface].value_range[current_option_index])
 
+#define LEFT_ENCODER                    encoder_get_count(TIM4_ENCODER)
+#define RIGHT_ENCODER                   encoder_get_count(TIM3_ENCODER)
+
 /**
  * @brief 界面名称枚举
  * @note 与 `current_interface` 对应，`current_interface` 中存储当前所在的界面
@@ -18,6 +21,7 @@ typedef enum interface_id
     NONE_MENU,
     MAIN_MENU,              // - 主菜单
     BOOT_MENU,              // - 启动菜单
+        BOOT_4_MENU,        // - 为模式4单开
     SENSOR_MENU,            // - 循迹权重调整
 
     PID_CONTROL_MENU,       // - PID菜单
@@ -39,7 +43,9 @@ enum option_mode
     SUBINTERFACE,   // - 子界面模式
     EDITABLE,       // - 可编辑模式
     INTERACTIBLE,   // - 可交互模式
-    READ_FLASH,      // - 数据需要读取
+    READ_FLASH,     // - 数据需要从flash读取
+    READ_ANGLE,     // - 数据需要从其他地方读取
+    READ_ENCODER,   // - 数据需要从其他地方读取
 };
 
 /**
@@ -52,7 +58,8 @@ typedef enum boot_mode
     MODE_1,
     MODE_2,
     MODE_3,
-    MODE_4,
+    MODE_4_RECORD,
+    MODE_4_REPLAY,
     MODE_5,
 } boot_mode;
 
@@ -62,10 +69,12 @@ typedef enum boot_mode
  */
 typedef enum EVENT_ID
 {
+    NON_EVENT,
     BOOT_MODE_1,
     BOOT_MODE_2,
     BOOT_MODE_3,
-    BOOT_MODE_4,
+    BOOT_MODE_4_RECORD,
+    BOOT_MODE_4_REPLAY,
     BOOT_MODE_5,
 } EVENT_ID;
 
@@ -112,5 +121,6 @@ void                    Menu_SavePIDToFlash             (void);
 double                  Menu_GetValue                   (interface_id ID, int option_index);
 void                    Menu_SetValue                   (interface_id ID, int option_index, int value);
 boot_mode               Menu_GetCurMode                 (void);
+void                    Menu_JustRefreshValue           (void);
 
 #endif

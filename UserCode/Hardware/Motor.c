@@ -3,7 +3,6 @@
 #define PWM_CH1                 (TIM5_PWM_CH1_A0)
 #define PWM_CH2                 (TIM5_PWM_CH2_A1)
 
-
 void Motor_Init(void)
 {
 	//逻辑电源初始化
@@ -24,15 +23,16 @@ void Motor_Init(void)
 
 void Motor_SetPWM(uint8 CH,int16_t PWM)											//第一个参数表示初始化哪一个通道，1或2，第二个参数表示PWM值,最大为10000
 {
-	if(CH==1){
-		if(PWM>=0)
+	if (CH==1)
+	{
+		if (PWM>=0)
 		{
-			gpio_set_level (A2, 1);
-			gpio_set_level (A3, 0);
+			gpio_set_level(A2, 1);
+			gpio_set_level(A3, 0);
 			pwm_set_duty(PWM_CH1, PWM);
-		}else{
-				gpio_set_level (A2, 0);
-				gpio_set_level (A3, 1);
+		} else {
+				gpio_set_level(A2, 0);
+				gpio_set_level(A3, 1);
 				pwm_set_duty(PWM_CH1,-PWM);
 		}
 	}

@@ -3,10 +3,10 @@
 * @note   PID计算不在这里！
 * @author MxBz_
 *************************************************************************************************/
-
 #include "zf_common_headfile.h"
 #include "sensor.h"
 #include "menu.h"
+#include "PID.h"
 
 /* ==============================================================================================
                                         全局变量定义
@@ -16,6 +16,26 @@ double L4_WEIGHT = 8.0f;           // 外面灯的权重
 double L3_WEIGHT = 5.0f;           // 次外面灯的权重
 double L2_WEIGHT = 3.0f;           // 次内部灯的权重
 double L1_WEIGHT = 1.0f;           // 内部灯的权重
+
+PID_t Sensor_PID = {
+    .Target     = 0.0f,
+    .Actual     = 0.0f,
+    .Actual1    = 0.0f,
+    .Out        = 0.0f,
+
+    .Kp         = 1.0f,
+    .Ki         = 1.0f,
+    .Kd         = 1.0f,
+
+    .Error0     = 0.0f,
+    .Error1     = 0.0f,
+    .ErrorInt   = 0.0f,
+
+    .OutMax     = 10.0f,
+    .OutMin     = -10.0f,
+    .OutOffset  = 0.0f,
+};
+
 /* ==============================================================================================
                                         函数定义
    ============================================================================================== */
@@ -56,7 +76,7 @@ void Sensor_UpdateWeight(void)
  * @note 给每个灯一个权重，然后加和，等下传到sensor_pid去
  * @return 一个 `int16_t` 值，代表权重后四舍五入的Error
  */
-int16_t Sensor_GetError(void)
+double Sensor_GetError(void)
 {
     Sensor_UpdateWeight(); // 更新一下
     double Error = 0;
@@ -71,7 +91,20 @@ int16_t Sensor_GetError(void)
              + L2_WEIGHT * Right2
              + L1_WEIGHT * Right1);
     
-    return (int16_t)Error;
+    return Error;
+}
+
+/** 
+ * @brief 更新Sensor_pid
+ * @note 你应该在每一个计算Sensor的PID之前用一次这个函数
+ * @return 
+ */
+void Sensor_UpdateSensorPID(void)
+{
+    Sensor_PID.Kp = Menu_GetValue(SENSOR_PID_MENU, 0);
+    Sensor_PID.Ki = Menu_GetValue(SENSOR_PID_MENU, 1);
+    Sensor_PID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
+    Sensor_PID.Error0 = Sensor_GetError();
 }
 
 

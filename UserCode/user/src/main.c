@@ -82,8 +82,6 @@ int main (void)
 		CarMode=Menu_GetCurMode();
 
     }
-
-      
     
 }
 
@@ -106,7 +104,7 @@ void pit_handler (void)
 	Count2++;
 	
 	
-	if(Count1>=10)//每10ms进行一次菜单更新
+	if(Count1>=10)//每10ms进行一次按钮检测
 	{
 		Count1=0;
 		Menu_UpDate();

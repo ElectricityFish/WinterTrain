@@ -21,9 +21,8 @@ typedef struct {
 	float OutOffset;	//输出偏移值
 } PID_t;	//PID结构体
 
-
 void PID_Update(PID_t *p);					//一般PID函数
-float TracePID_Update(void);				//循迹PID函数
+void Sensor_PIDControl(void);				//循迹PID函数
 void Angle_PIDControl(void);				//角度环PID函数
 void SpeedAndTurn_PIDControl(void);			//速度环和转向环PID函数
 

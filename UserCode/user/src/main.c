@@ -55,6 +55,16 @@ PID_t TurnPID={
 	
 };
 
+PID_t SensorPID = {
+    .Kp         = 1.0f,
+    .Ki         = 1.0f,
+    .Kd         = 1.0f,
+
+	.Target     = 0.0f,
+    .OutMax     = 10.0f,
+    .OutMin     = -10.0f,
+};
+
 
 void Menu_UpDate(void);//封装后的菜单更新函数
 int main (void)
@@ -79,7 +89,7 @@ int main (void)
 	
     while(1)
     {	
-		CarMode=Menu_GetCurMode();
+		CarMode = Menu_GetCurMode();
 
     }
     
@@ -99,9 +109,11 @@ void pit_handler (void)
 	static uint8_t Count0=0;
 	static uint8_t Count1=5; //初始值不同进行错峰更新
 	static uint8_t Count2=0;
+	static uint8_t Count_Sensor = 3;
 	Count0++;
 	Count1++;
 	Count2++;
+	Count_Sensor++;
 	
 	
 	if(Count1>=10)//每10ms进行一次按钮检测，和菜单更新，并从菜单获取最新参数
@@ -109,7 +121,6 @@ void pit_handler (void)
 		Count1=0;
 		Menu_UpDate();
 		Menu_JustRefreshValue();
-		
 		
 	}
 
@@ -134,6 +145,13 @@ void pit_handler (void)
 		Count2=0;
 		SpeedAndTurn_PIDControl();
 		
+	}
+
+	if (CarMode == MODE_2 || CarMode == MODE_3) { // 两个需要循迹的任务
+		if (Count_Sensor > 10) {
+			Count_Sensor = 0;
+			Sensor_PIDControl();
+		}
 	}
 	
 }
@@ -172,6 +190,10 @@ void Menu_UpDate(void)
 	TurnPID.Kp = Menu_GetValue(TURNING_PID_MENU, 0);
 	TurnPID.Ki = Menu_GetValue(TURNING_PID_MENU, 1);
 	TurnPID.Kd = Menu_GetValue(TURNING_PID_MENU, 2);
+
+	SensorPID.Kp = Menu_GetValue(SENSOR_PID_MENU, 0);
+	SensorPID.Ki = Menu_GetValue(SENSOR_PID_MENU, 1);
+	SensorPID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
 	   
 }
 

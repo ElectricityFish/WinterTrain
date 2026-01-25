@@ -63,8 +63,8 @@ void Angle_PIDControl(void)
 		
 	AvePWM=AnglePID.Out;
 		
-	LeftPWM=AvePWM+DifPWM/2;
-	RightPWM=AvePWM-DifPWM/2;
+	LeftPWM  = AvePWM + DifPWM / 2;
+	RightPWM = AvePWM - DifPWM / 2;
 			
 	if(LeftPWM>10000)LeftPWM=10000;else if(LeftPWM<-10000)LeftPWM=-10000;
 	if(RightPWM>10000)RightPWM=10000;else if(RightPWM<-10000)RightPWM=-10000;
@@ -103,35 +103,22 @@ void SpeedAndTurn_PIDControl(void)
 		}
 }
 
+/** 
+ * @brief 循迹环
+ * @note 参数定义在main函数里方便修改
+ * @return 无返回值，运行时进行调控，不运行时仍会测速
+ */
+extern PID_t SensorPID;
+void Sensor_PIDControl(void)				//循迹PID函数，至于为啥不叫Trace，这是个历史遗留问题（哭）
+{	
+	if (!(CarMode == MODE_2 || CarMode == MODE_3)) return;
 
+	double sensor_error = Sensor_GetError();
+	SensorPID.Actual = sensor_error;
 
-float TracePID_Update(void)				//循迹PID函数
-{
+	PID_Update(&SensorPID);
 
-    static float Current_Error,Previous_Error,Error_Sum;
-	static float kp,ki,kd;
-	float PID_Out;
+	TurnPID.Target = SensorPID.Out;
 
-	kp = 
-	
-        Previous_Error = Current_Error;
-        Current_Error = Sensor_GetError();
-
-        Error_Sum+=Current_Error;
-
-        float Error_Init=ki*Error_Sum;
-        //积分限幅
-        if(Error_Init>=5)Error_Init=5;
-        if(Error_Init<=-5)Error_Init=-5;
-
-        PID_Out=kp*Current_Error+Error_Init+kd*(Current_Error-Previous_Error);
-        //PID限幅
-        if(PID_Out>=15)PID_Out=15;
-        if(PID_Out<=-15)PID_Out=-15;
-
-        //更改目标速度
-        	
-		return PID_Out;
-   
 }
 

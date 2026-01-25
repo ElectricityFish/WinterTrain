@@ -17,24 +17,7 @@ double L3_WEIGHT = 5.0f;           // 次外面灯的权重
 double L2_WEIGHT = 3.0f;           // 次内部灯的权重
 double L1_WEIGHT = 1.0f;           // 内部灯的权重
 
-PID_t Sensor_PID = {
-    .Target     = 0.0f,
-    .Actual     = 0.0f,
-    .Actual1    = 0.0f,
-    .Out        = 0.0f,
-
-    .Kp         = 1.0f,
-    .Ki         = 1.0f,
-    .Kd         = 1.0f,
-
-    .Error0     = 0.0f,
-    .Error1     = 0.0f,
-    .ErrorInt   = 0.0f,
-
-    .OutMax     = 10.0f,
-    .OutMin     = -10.0f,
-    .OutOffset  = 0.0f,
-};
+int track_lost_counter;
 
 /* ==============================================================================================
                                         函数定义
@@ -95,16 +78,20 @@ double Sensor_GetError(void)
 }
 
 /** 
- * @brief 更新Sensor_pid
- * @note 你应该在每一个计算Sensor的PID之前用一次这个函数
- * @return 
+ * @brief 检查是不是 >TRACK LOST<
+ * @note 卡车丢失
+ * @return 0表示正常，1表示卡车丢失
  */
-void Sensor_UpdateSensorPID(void)
+int Sensor_CheckTrack(void) 
 {
-    Sensor_PID.Kp = Menu_GetValue(SENSOR_PID_MENU, 0);
-    Sensor_PID.Ki = Menu_GetValue(SENSOR_PID_MENU, 1);
-    Sensor_PID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
-    Sensor_PID.Error0 = Sensor_GetError();
+    if (Sensor_GetError() == 0) {
+        track_lost_counter++;
+    } else {
+        track_lost_counter = 0;
+    }
+    if (track_lost_counter >= 50) { // ，10ms检测一次在SensorPID里调用一次，所以0.5s没检测到线就是断线
+        return 1;
+    } else {
+        return 0;
+    }
 }
-
-

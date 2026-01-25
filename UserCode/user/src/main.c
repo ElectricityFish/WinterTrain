@@ -89,7 +89,12 @@ int main (void)
 
 
 
-
+/**
+ * @brief 封装后的中断函数,每1ms在isr的中断函数里调用一次
+ * @note 功能：姿态解算，平衡PID计算和执行，菜单更新
+ * @note 格式说明：各个功能均已封装到响应的文件里的函数，姿态解算在Kfilter.c，PID计算在PID.c里，菜单更新在main.c里
+ * @return 无
+ */
 void pit_handler (void)
 {
 
@@ -105,18 +110,6 @@ void pit_handler (void)
 	{
 		Count1=0;
 		Menu_UpDate();
-//		key_scanner();
-//		if (key_get_state(KEY_4) == KEY_SHORT_PRESS) {
-//            Menu_Up();
-//        } else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) {
-//            Menu_Down();
-//        } else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) {
-//            Menu_Forward();
-//        } else if (key_get_state(KEY_1) == KEY_SHORT_PRESS) {
-//            Menu_Backward();
-//        } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
-//            Menu_SavePIDToFlash();
-//        }
 	}
 
 	if(Count0>=10)//每10ms进行一次姿态解算，和平衡态控制
@@ -124,22 +117,7 @@ void pit_handler (void)
 		Count0 = 0;
 		
 		Get_Angle();
-//		mpu6050_get_gyro();
-//		mpu6050_get_acc();
-//		
-//		//姿态解算，使用卡尔曼滤波算法
-//		
-//		//yaw角解算（无加速度计校准）
-//		gyro_yaw += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
-//		yaw = gyro_yaw;
-//		
-//		//pitch角解算（加速度计校准）
-//		//加速度计简陋滤波
-//		AX = mpu6050_acc_x / 100 * 100;
-//		AY = mpu6050_acc_y / 100 * 100;
-//		AZ = mpu6050_acc_z / 100 * 100;
-//		pitch = calculatePitchAngle(AX, AY, AZ, (mpu6050_gyro_y / 100 * 100) , 0.01, &KF)-Offset;
-		
+
 		if(CarMode!=IDLE)
 		{
 			Angle_PIDControl();//角度环控制函数，详见PID.c
@@ -154,24 +132,6 @@ void pit_handler (void)
 	{
 		Count2=0;
 		SpeedAndTurn_PIDControl();
-//		SpeedLeft=Get_Count2();
-//		SpeedRight=Get_Count1();
-//		Encoder_Clear();
-//		AveSpeed=(SpeedLeft+SpeedRight)/2.f;
-//		DifSpeed=SpeedLeft-SpeedRight;
-//		
-//		if(CarMode!=IDLE)
-//		{
-//			//速度环
-//			SpeedPID.Actual=AveSpeed;
-//			PID_Update(&SpeedPID);
-//			AnglePID.Target=SpeedPID.Out;
-//			//转向环
-//			TurnPID.Actual=DifSpeed;
-//			PID_Update(&TurnPID);
-//			DifPWM=TurnPID.Out;
-//		}
-
 	}
 	
 }

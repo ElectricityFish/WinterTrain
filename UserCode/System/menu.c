@@ -97,10 +97,10 @@ Interface_TypeDef interface[100] = {
         .ID = PID_CONTROL_MENU,
         .option_count = 4,
         .option_text = {
-            "Stand PID", 
-            "Speed PID", 
-            "Turning PID", 
-            "Sensor PID"
+            "ANGLE PID", 
+            "SPEED PID", 
+            "TURNING PID", 
+            "SENSOR PID"
         },
         .option_mode = {
             SUBINTERFACE, 
@@ -120,9 +120,9 @@ Interface_TypeDef interface[100] = {
         .ID = STAND_PID_MENU,
         .option_count = 7,
         .option_text = {
-            "Stand kP", 
-            "Stand kI", 
-            "Stand kD", 
+            "ANGLE kP", 
+            "ANGLE kI", 
+            "ANGLE kD", 
             "====x100====", 
             "kP save", 
             "kI save", 

@@ -5,7 +5,7 @@
 #include "Encoder.h"
 #include "menu.h"
 
-void PID_Update(PID_t *p)			//一般PID函数
+void PID_Update(PID_t *p)			// 一般PID函数
 {
 	p->Error1 = p->Error0;
 	p->Error0 = p->Target - p->Actual;
@@ -19,7 +19,7 @@ void PID_Update(PID_t *p)			//一般PID函数
 		p->ErrorInt = 0;
 	}
 	
-	if(p->ErrorInt>=p->OutMax/2)p->ErrorInt=p->OutMax/2.f;	//积分限幅
+	if(p->ErrorInt>=p->OutMax/2)p->ErrorInt=p->OutMax/2.f;	// 积分限幅
 	if(p->ErrorInt<=p->OutMin/2)p->ErrorInt=p->OutMin/2.f;
 	
 	
@@ -27,8 +27,7 @@ void PID_Update(PID_t *p)			//一般PID函数
 		   + p->Ki * p->ErrorInt
 	+ p->Kd * (p->Error0 - p->Error1);				
 		   
-	//-p->Kd*(p->Actual-p->Actual1);微分先行，将对误差的微分改为对实际值的微分
-	
+//-p->Kd*(p->Actual-p->Actual1);微分先行，将对误差的微分改为对实际值的微分	
 //	if(p->Out>0){p->Out+=p->OutOffset;}			//输出偏移
 //	if(p->Out<0){p->Out-=p->OutOffset;}
 	
@@ -38,16 +37,15 @@ void PID_Update(PID_t *p)			//一般PID函数
 	p->Actual1=p->Actual;
 }
 
-
 /** 
  * @brief 角度环PID函数
  * @note 参数定义在main函数里方便修改
  * @return 无返回值，当角度过大会触发大角度保护自动停止
  */
-extern float yaw, pitch, roll;
-extern PID_t AnglePID;
-extern int16_t LeftPWM,RightPWM;
-extern int16_t AvePWM,DifPWM;
+extern float yaw, pitch, roll;     	// 3轴
+extern PID_t AnglePID;             	// 角度PID
+extern int16_t LeftPWM,RightPWM;   	// 左右电机设定值
+extern int16_t AvePWM,DifPWM;      	// 左右均值、差分
 void Angle_PIDControl(void)
 {
 	//角度过大保护
@@ -62,12 +60,12 @@ void Angle_PIDControl(void)
 	PID_Update(&AnglePID);
 		
 	AvePWM=AnglePID.Out;
-		
 	LeftPWM  = AvePWM + DifPWM / 2;
 	RightPWM = AvePWM - DifPWM / 2;
-			
-	if(LeftPWM>10000)LeftPWM=10000;else if(LeftPWM<-10000)LeftPWM=-10000;
-	if(RightPWM>10000)RightPWM=10000;else if(RightPWM<-10000)RightPWM=-10000;
+
+	if (LeftPWM>10000) 	LeftPWM	=	10000;	else if (LeftPWM<-10000)	LeftPWM	=	-10000;
+	if (RightPWM>10000)	RightPWM=	10000;	else if (RightPWM<-10000)	RightPWM=	-10000;
+
 	Motor_SetPWM(1,LeftPWM);
 	Motor_SetPWM(2,RightPWM);
 }
@@ -79,27 +77,28 @@ void Angle_PIDControl(void)
  */
 extern PID_t SpeedPID;
 extern PID_t TurnPID;
-extern float SpeedLeft,SpeedRight;
-extern float AveSpeed,DifSpeed;
+extern float SpeedLeft,SpeedRight;			// 测得的速度
+extern float AveSpeed,DifSpeed;				// 平均速度、速度差分
 extern boot_mode CarMode;
 void SpeedAndTurn_PIDControl(void)
 {
-		SpeedLeft=Get_Count2();
-		SpeedRight=Get_Count1();
+		SpeedLeft = Get_Count2();
+		SpeedRight = Get_Count1();
 		Encoder_Clear();
-		AveSpeed=(SpeedLeft+SpeedRight)/2.f;
-		DifSpeed=SpeedLeft-SpeedRight;
+
+		AveSpeed = (SpeedLeft + SpeedRight) / 2.f;
+		DifSpeed = SpeedLeft - SpeedRight;
 		
-		if(CarMode!=IDLE)
+		if (CarMode != IDLE)
 		{
-			//速度环
-			SpeedPID.Actual=AveSpeed;
+			///////////////////////////////速度环
+			SpeedPID.Actual = AveSpeed;
 			PID_Update(&SpeedPID);
-			AnglePID.Target=SpeedPID.Out;
-			//转向环
-			TurnPID.Actual=DifSpeed;
+			AnglePID.Target = SpeedPID.Out;
+			///////////////////////////////转向环
+			TurnPID.Actual = DifSpeed;
 			PID_Update(&TurnPID);
-			DifPWM=TurnPID.Out;
+			DifPWM = TurnPID.Out;
 		}
 }
 

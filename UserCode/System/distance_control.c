@@ -86,9 +86,11 @@ void run_distance(uint16_t distance)
 	if(distance_pid.Out != 0)
 	{
 		Moto_SetPWM(1,0+distance_pid.Out);
+		Moto_SetPWM(2,0+distance_pid.Out);
 	}
 	else
 	{
-		Moto_SetPWM(2,0+distance_pid.Out);
+		Moto_SetPWM(1,0);
+		Moto_SetPWM(2,0);
 	}
 }

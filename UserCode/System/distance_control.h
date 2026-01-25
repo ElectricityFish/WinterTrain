@@ -18,7 +18,13 @@ typedef struct {
 	float OutMin;
 } Distance_PID;
 
-
 #define wheel_r = 3.4   //单位：cm
+
+void Right_EncodeGet(void);
+void Left_EncodeGet(void);
+float Right_Distance(void);
+float Left_Distance(void);
+void distance_pid_UpdatePID(void);
+void run_distance(uint16_t distance);
 
 #endif

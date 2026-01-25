@@ -67,5 +67,28 @@ void distance_pid_UpdatePID(void)
 */
 void run_distance(uint16_t distance)
 {
+	distance_pid.Error0 = distance;
+	distance_pid.Error1 = distance_pid.Error0;
 	
+	if(distance_pid.Ki != 0){distance_pid.ErrorInt += distance_pid.Error0;}
+	else{distance_pid.ErrorInt = 0;}
+	
+	distance_pid.Out = distance_pid.Kp * distance_pid.Error0 + distance_pid.Ki * distance_pid.ErrorInt 
+						+ distance_pid.Kd * (distance_pid.Error0 - distance_pid.Error1);
+	
+	//输出限幅
+	if(distance_pid.Out > distance_pid.OutMax){distance_pid.Out = distance_pid.OutMax;}
+	if(distance_pid.Out < distance_pid.OutMin){distance_pid.Out = distance_pid.OutMin;}
+	
+	/*
+		关于初始PWM，不是0，应该为平衡车PID的PWM值，先填0，倒时候在改
+	*/
+	if(distance_pid.Out != 0)
+	{
+		Moto_SetPWM(1,0+distance_pid.Out);
+	}
+	else
+	{
+		Moto_SetPWM(2,0+distance_pid.Out);
+	}
 }

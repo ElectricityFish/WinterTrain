@@ -44,7 +44,12 @@ void turn_angle(uint16 angle)
 	else{turn_pid.ErrorInt = 0;}
 	
 	turn_pid.Out = turn_pid.Kp * turn_pid.Error0 + turn_pid.Ki * turn_pid.ErrorInt 
-					+ turn_pid.Kd * (turn_pid.Error0 -turn_pid.Error1);
+					+ turn_pid.Kd * (turn_pid.Error0 - turn_pid.Error1);
+	
+	//输出限幅
+	if(turn_pid.Out > turn_pid.OutMax){turn_pid.Out = turn_pid.OutMax;}
+	if(turn_pid.Out < turn_pid.OutMin){turn_pid.Out = turn_pid.OutMin;}
+	
 	/*
 	关于初始PWM，不是0，应该为平衡车PID的PWM值，先填0，倒时候在改
 	*/

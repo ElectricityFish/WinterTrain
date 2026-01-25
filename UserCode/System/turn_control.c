@@ -7,8 +7,10 @@
 #include "zf_common_headfile.h"
 #include "turn_control.h"
 #include "menu.h"
+#include "Motor.h"
 
 extern float yaw;
+
 //结构体初始化
 Turn_PID turn_pid = {
 	.Kp = 0.0f,
@@ -29,9 +31,11 @@ void turn_pid_UpdatePID(void)
 
 //定向转动 
 /*
-	使用:左轮PWM+out值，右轮PWM-out值（先这么确定）
+	使用方法:turn_angle(30);     //向右转30°，左右方向可能有误，到时候根据实际情况更改
 */
-float turn_angle(uint16_t angle)
+//后续跟队友代码结合后打算改成void类型，直接使用，不作用到PWM输出的计算里
+//这里写上注释提醒一下自己
+void turn_angle(uint16 angle)
 {
 	turn_pid.Error0 = angle;
 	turn_pid.Error1 = turn_pid.Error0;
@@ -40,10 +44,18 @@ float turn_angle(uint16_t angle)
 	else{turn_pid.ErrorInt = 0;}
 	
 	turn_pid.Out = turn_pid.Kp * turn_pid.Error0 + turn_pid.Ki * turn_pid.ErrorInt 
-	                + turn_pid.Kd * (turn_pid.Error0 - turn_pid.Error1);
-	
-	if(turn_pid.Out > turn_pid.OutMax){turn_pid.Out = turn_pid.OutMax;}
-	if(turn_pid.Out < turn_pid.OutMin){turn_pid.Out = turn_pid.OutMin;}
-	
-	return turn_pid.Out;
+					+ turn_pid.Kd * (turn_pid.Error0 -turn_pid.Error1);
+	/*
+	关于初始PWM，不是0，应该为平衡车PID的PWM值，先填0，倒时候在改
+	*/
+	if(turn_pid.Out != 0)
+	{
+		Moto_SetPWM(1,0 + turn_pid.Out/2);   
+		Moto_SetPWM(2,0 - turn_pid.Out/2);
+	}
+	else
+	{
+		Moto_SetPWM(1,0);
+		Moto_SetPWM(2,0);
+	}
 }

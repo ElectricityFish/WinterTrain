@@ -1,5 +1,5 @@
-#ifndef __TURN_CONTROL_H
-#define __TURN_CONTROL_H
+#ifndef __DISTANCE_CONTROL_H
+#define __DISTANCE_CONTROL_H
 
 typedef struct {
 	float Target;
@@ -16,9 +16,9 @@ typedef struct {
 	
 	float OutMax;
 	float OutMin;
-} Turn_PID;
+} Distance_PID;
 
-void turn_pid_UpdatePID(void);
-void turn_angle(uint16_t angle);
+
+#define wheel_r = 3.4   //单位：cm
 
 #endif

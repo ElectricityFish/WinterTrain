@@ -5,6 +5,7 @@
 #include "BuzzerAndLED.h"
 #include "Kfilter.h"
 #include "menu.h"
+#include "zf_driver_delay.h"
 
 
 float gyro_yaw = 0, gyro_pitch = 0, gyro_roll = 0;
@@ -39,7 +40,9 @@ int main (void)
 	
     while(1)
     {	
+		printf("%f\r\n",yaw);
 		
+		system_delay_ms(10);
     }
     
 }

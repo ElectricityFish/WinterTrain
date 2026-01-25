@@ -7,6 +7,7 @@
 #include "menu.h"
 #include "PID.h"
 
+
 float gyro_yaw = 0, gyro_pitch = 0, gyro_roll = 0;
 float acc_yaw = 0, acc_pitch = 0, acc_roll = 0;
 int16 AX, AY, AZ;
@@ -55,6 +56,7 @@ PID_t TurnPID={
 };
 
 
+void Menu_UpDate(void);//封装后的菜单更新函数
 int main (void)
 {
     clock_init(SYSTEM_CLOCK_120M);                                              // 初始化芯片时钟 工作频率为 120MHz
@@ -102,61 +104,45 @@ void pit_handler (void)
 	if(Count1>=10)//每10ms进行一次菜单更新
 	{
 		Count1=0;
-		key_scanner();
-		if (key_get_state(KEY_4) == KEY_SHORT_PRESS) {
-            Menu_Up();
-        } else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) {
-            Menu_Down();
-        } else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) {
-            Menu_Forward();
-        } else if (key_get_state(KEY_1) == KEY_SHORT_PRESS) {
-            Menu_Backward();
-        } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
-            Menu_SavePIDToFlash();
-        }
+		Menu_UpDate();
+//		key_scanner();
+//		if (key_get_state(KEY_4) == KEY_SHORT_PRESS) {
+//            Menu_Up();
+//        } else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) {
+//            Menu_Down();
+//        } else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) {
+//            Menu_Forward();
+//        } else if (key_get_state(KEY_1) == KEY_SHORT_PRESS) {
+//            Menu_Backward();
+//        } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
+//            Menu_SavePIDToFlash();
+//        }
 	}
 
 	if(Count0>=10)//每10ms进行一次姿态解算，和平衡态控制
 	{
 		Count0 = 0;
-		mpu6050_get_gyro();
-		mpu6050_get_acc();
 		
-		//姿态解算，使用卡尔曼滤波算法
-		
-		//yaw角解算（无加速度计校准）
-		gyro_yaw += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
-		yaw = gyro_yaw;
-		
-		//pitch角解算（加速度计校准）
-		//加速度计简陋滤波
-		AX = mpu6050_acc_x / 100 * 100;
-		AY = mpu6050_acc_y / 100 * 100;
-		AZ = mpu6050_acc_z / 100 * 100;
-		pitch = calculatePitchAngle(AX, AY, AZ, (mpu6050_gyro_y / 100 * 100) , 0.01, &KF)-Offset;
+		Get_Angle();
+//		mpu6050_get_gyro();
+//		mpu6050_get_acc();
+//		
+//		//姿态解算，使用卡尔曼滤波算法
+//		
+//		//yaw角解算（无加速度计校准）
+//		gyro_yaw += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
+//		yaw = gyro_yaw;
+//		
+//		//pitch角解算（加速度计校准）
+//		//加速度计简陋滤波
+//		AX = mpu6050_acc_x / 100 * 100;
+//		AY = mpu6050_acc_y / 100 * 100;
+//		AZ = mpu6050_acc_z / 100 * 100;
+//		pitch = calculatePitchAngle(AX, AY, AZ, (mpu6050_gyro_y / 100 * 100) , 0.01, &KF)-Offset;
 		
 		if(CarMode!=IDLE)
 		{
-			//角度过大保护
-			if (pitch > 50 || pitch < -50)		
-			{
-				CarMode =IDLE;	//让魏子尧写个保护
-				Motor_SetPWM(1,0);
-				Motor_SetPWM(2,0);
-			}
-			
-			AnglePID.Actual=pitch;
-			PID_Update(&AnglePID);
-			
-			AvePWM=AnglePID.Out;
-			
-			LeftPWM=AvePWM+DifPWM/2;
-			RightPWM=AvePWM-DifPWM/2;
-			
-			if(LeftPWM>10000)LeftPWM=10000;else if(LeftPWM<-10000)LeftPWM=-10000;
-			if(RightPWM>10000)RightPWM=10000;else if(RightPWM<-10000)RightPWM=-10000;
-			Motor_SetPWM(1,LeftPWM);
-			Motor_SetPWM(2,RightPWM);
+			Angle_PIDControl();//角度环控制函数，详见PID.c
 		}else{
 			Motor_SetPWM(1,0);
 			Motor_SetPWM(2,0);
@@ -167,27 +153,47 @@ void pit_handler (void)
 	if(Count2>=50)//每50ms获取一次编码器计数值
 	{
 		Count2=0;
-		
-		SpeedLeft=Get_Count2();
-		SpeedRight=Get_Count1();
-		Encoder_Clear();
-		AveSpeed=(SpeedLeft+SpeedRight)/2.f;
-		DifSpeed=SpeedLeft-SpeedRight;
-		
-		if(CarMode!=IDLE)
-		{
-			//速度环
-			SpeedPID.Actual=AveSpeed;
-			PID_Update(&SpeedPID);
-			AnglePID.Target=SpeedPID.Out;
-			//转向环
-			TurnPID.Actual=DifSpeed;
-			PID_Update(&TurnPID);
-			DifPWM=TurnPID.Out;
-		}
+		SpeedAndTurn_PIDControl();
+//		SpeedLeft=Get_Count2();
+//		SpeedRight=Get_Count1();
+//		Encoder_Clear();
+//		AveSpeed=(SpeedLeft+SpeedRight)/2.f;
+//		DifSpeed=SpeedLeft-SpeedRight;
+//		
+//		if(CarMode!=IDLE)
+//		{
+//			//速度环
+//			SpeedPID.Actual=AveSpeed;
+//			PID_Update(&SpeedPID);
+//			AnglePID.Target=SpeedPID.Out;
+//			//转向环
+//			TurnPID.Actual=DifSpeed;
+//			PID_Update(&TurnPID);
+//			DifPWM=TurnPID.Out;
+//		}
 
 	}
 	
 }
 
+
+/**
+ * @brief 封装后的菜单跟新函数
+ * @return 无
+ */
+void Menu_UpDate(void)
+{
+	key_scanner();
+	if (key_get_state(KEY_4) == KEY_SHORT_PRESS) {
+           Menu_Up();
+       } else if (key_get_state(KEY_3) == KEY_SHORT_PRESS) {
+           Menu_Down();
+       } else if (key_get_state(KEY_2) == KEY_SHORT_PRESS) {
+           Menu_Forward();
+       } else if (key_get_state(KEY_1) == KEY_SHORT_PRESS) {
+           Menu_Backward();
+       } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
+           Menu_SavePIDToFlash();
+       }
+}
 

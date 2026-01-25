@@ -1,5 +1,6 @@
 #include "zf_common_headfile.h"
 
+
 #include <math.h>
 #include <stdio.h>
 
@@ -104,6 +105,8 @@ float calculatePitchAngle(float ax, float ay, float az, float gy, float dt, Kalm
     return  Kalman_Calculate(kf, getAccelAngle(ax, ay, az), gyro_y, dt);
 }
 
+
+
 void GetOffset(float *Offset,float Angle,uint8_t Flag)
 {
 	static float AngleSum=0;
@@ -111,5 +114,40 @@ void GetOffset(float *Offset,float Angle,uint8_t Flag)
 	if(Flag==0){
 		*Offset=AngleSum/100;
 	}
-	
 }
+
+
+
+/**
+ * @brief 封装后的姿态解算函数
+ * @param 关键数据定义在主函数
+ * @return 无
+ */
+extern float gyro_yaw , gyro_pitch , gyro_roll ;
+extern float acc_yaw , acc_pitch , acc_roll;
+extern int16 AX, AY, AZ;
+extern float Offset;
+extern float yaw, pitch, roll;
+extern KalmanFilter KF;
+void Get_Angle(void)
+{
+	
+		mpu6050_get_gyro();
+		mpu6050_get_acc();
+		
+		//姿态解算，使用卡尔曼滤波算法
+		
+		//yaw角解算（无加速度计校准）
+		gyro_yaw += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
+		yaw = gyro_yaw;
+		
+		//pitch角解算（加速度计校准）
+		//加速度计简陋滤波
+		AX = mpu6050_acc_x / 100 * 100;
+		AY = mpu6050_acc_y / 100 * 100;
+		AZ = mpu6050_acc_z / 100 * 100;
+		pitch=calculatePitchAngle(AX, AY, AZ, (mpu6050_gyro_y / 100 * 100) , 0.01, &KF)-Offset;
+}
+
+
+

@@ -1,3 +1,4 @@
+#include "zf_common_headfile.h"
 #ifndef __KFILTER_H
 #define __KFILTER_H
 
@@ -17,6 +18,5 @@ void Kalman_Init(KalmanFilter* kf,float Q_angle,float Q_bias,float R_measure);
 float calculatePitchAngle(float ax, float ay, float az, float gy, float dt, KalmanFilter* kf);
 float getAccelAngle(float ax, float ay, float az);
 void GetOffset(float *Offset,float Angle, uint8_t Flag);
-
-
+void Get_Angle(void);//封装后的姿态解算函数
 #endif

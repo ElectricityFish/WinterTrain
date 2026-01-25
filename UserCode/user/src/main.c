@@ -104,10 +104,13 @@ void pit_handler (void)
 	Count2++;
 	
 	
-	if(Count1>=10)//每10ms进行一次按钮检测
+	if(Count1>=10)//每10ms进行一次按钮检测，和菜单更新，并从菜单获取最新参数
 	{
 		Count1=0;
 		Menu_UpDate();
+		Menu_JustRefreshValue();
+		
+		
 	}
 
 	if(Count0>=10)//每10ms进行一次姿态解算，和平衡态控制
@@ -130,6 +133,7 @@ void pit_handler (void)
 	{
 		Count2=0;
 		SpeedAndTurn_PIDControl();
+		
 	}
 	
 }
@@ -137,6 +141,7 @@ void pit_handler (void)
 
 /**
  * @brief 封装后的菜单跟新函数
+ * @note 根据按键状态更新菜单的同时，将最新参数赋值给参与计算的变量
  * @return 无
  */
 void Menu_UpDate(void)
@@ -153,5 +158,20 @@ void Menu_UpDate(void)
        } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
            Menu_SavePIDToFlash();
        }
+	
+
+	//将最新参数赋值给参与计算的变量
+	AnglePID.Kp = Menu_GetValue(STAND_PID_MENU, 0)*1000;
+	AnglePID.Ki = Menu_GetValue(STAND_PID_MENU, 1)*1000;
+	AnglePID.Kd = Menu_GetValue(STAND_PID_MENU, 2)*1000;
+
+	SpeedPID.Kp = Menu_GetValue(SPEED_PID_MENU, 0);
+	SpeedPID.Ki = Menu_GetValue(SPEED_PID_MENU, 1);
+	SpeedPID.Kd = Menu_GetValue(SPEED_PID_MENU, 2);
+
+	TurnPID.Kp = Menu_GetValue(TURNING_PID_MENU, 0);
+	TurnPID.Ki = Menu_GetValue(TURNING_PID_MENU, 1);
+	TurnPID.Kd = Menu_GetValue(TURNING_PID_MENU, 2);
+	   
 }
 

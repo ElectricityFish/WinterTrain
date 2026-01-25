@@ -9,8 +9,9 @@
 #define CURRENT_OPTION_VALUE            (interface[current_interface].option_value[current_option_index])
 #define CURRENT_OPTION_VALUE_RANGE      (interface[current_interface].value_range[current_option_index])
 
-#define LEFT_ENCODER                    encoder_get_count(TIM4_ENCODER)
-#define RIGHT_ENCODER                   encoder_get_count(TIM3_ENCODER)
+extern float SpeedLeft,SpeedRight;
+#define LEFT_ENCODER                    SpeedLeft//encoder_get_count(TIM4_ENCODER)
+#define RIGHT_ENCODER                   SpeedRight//encoder_get_count(TIM3_ENCODER)
 
 /**
  * @brief 界面名称枚举

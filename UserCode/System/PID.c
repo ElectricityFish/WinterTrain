@@ -132,9 +132,9 @@ void Sensor_PIDControl(void)				//循迹PID函数，至于为啥不叫Trace，�
 		// 这里缺声光模块的代码 WIP
 	} else if (prev_track_state == 1 && cur_track_state == 1) {
 		return ; // 丢线状态下面PID就别算了吧，哈
-	}				
+	}
 
-	double sensor_error = Sensor_GetError();
+	double sensor_error = Sensor_ComplementaryFilteredError();
 	SensorPID.Actual = sensor_error;
 
 	PID_Update(&SensorPID);

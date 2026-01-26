@@ -32,7 +32,6 @@ typedef struct {
 
 
 void PID_Update(PID_t *p);					//一般PID函数
-float TracePID_Update(void);				//循迹PID函数
 void Balance_PIDControl(void);				//角度环PID函数
 
 #endif

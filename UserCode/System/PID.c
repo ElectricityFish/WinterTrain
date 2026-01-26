@@ -3,7 +3,7 @@
 #include "Sensor.h"
 #include "Motor.h"
 #include "Encoder.h"
-#include "mMenu.h"
+#include "Menu.h"
 
 void PID_Update(PID_t *p)			// 一般PID函数
 {
@@ -88,33 +88,5 @@ void Balance_PIDControl(void)
 }
 
 
-float TracePID_Update(void)				//循迹PID函数
-{
 
-    static float Current_Error,Previous_Error,Error_Sum;
-	static float kp,ki,kd;
-	float PID_Out;
-
-	kp = 
-	
-        Previous_Error = Current_Error;
-        Current_Error = Sensor_GetError();
-
-        Error_Sum+=Current_Error;
-
-        float Error_Init=ki*Error_Sum;
-        //积分限幅
-        if(Error_Init>=5)Error_Init=5;
-        if(Error_Init<=-5)Error_Init=-5;
-
-        PID_Out=kp*Current_Error+Error_Init+kd*(Current_Error-Previous_Error);
-        //PID限幅
-        if(PID_Out>=15)PID_Out=15;
-        if(PID_Out<=-15)PID_Out=-15;
-
-        //更改目标速度
-        	
-		return PID_Out;
-   
-}
 

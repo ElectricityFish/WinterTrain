@@ -24,7 +24,7 @@ int16_t AvePWM,DifPWM;
 PID_t AnglePID={
 	.Kp=540.0,
 	.Ki=0.0,
-	.Kd=1200.0,
+	.Kd=2000.0,
 	
 	.OutOffset=0.0,	//输出偏移值,让电机动起来的最小PWM
 	.Target=0.f,
@@ -33,25 +33,25 @@ PID_t AnglePID={
 
 };
 
-PID_t SpeedPID={	//速度环通过控制目标角度控制行进
-	.Kp=-0.8,
-	.Ki=0.8/200.f,
+PID_t SpeedPID={	
+	.Kp=-700.0,
+	.Ki=-3.5,
 	.Kd=0.0,
 	
 	.Target=0.f,
-	.OutMax=20,//最大倾斜角度
-	.OutMin=-20,
+	.OutMax=10000,
+	.OutMin=-10000,
 	
 };
 
 PID_t TurnPID={
-	.Kp=0.0,
-	.Ki=0.0,
+	.Kp=-3000.0,
+	.Ki=-200.0,
 	.Kd=0,
 	
 	.Target=0.f,
-	.OutMax=0.0,
-	.OutMin=-0.0, 
+	.OutMax=5000.0,
+	.OutMin=-5000.0, 
 	
 };
 
@@ -80,7 +80,6 @@ int main (void)
     while(1)
     {	
 		CarMode=Menu_GetCurMode();
-
     }
     
 }
@@ -98,10 +97,8 @@ void pit_handler (void)
 
 	static uint8_t Count0=0;
 	static uint8_t Count1=5; //初始值不同进行错峰更新
-	static uint8_t Count2=0;
 	Count0++;
 	Count1++;
-	Count2++;
 	
 	
 	if(Count1>=10)//每10ms进行一次按钮检测，和菜单更新，并从菜单获取最新参数
@@ -109,8 +106,6 @@ void pit_handler (void)
 		Count1=0;
 		Menu_UpDate();
 		Menu_JustRefreshValue();
-		
-		
 	}
 
 	if(Count0>=10)//每10ms进行一次姿态解算，和平衡态控制
@@ -118,22 +113,17 @@ void pit_handler (void)
 		Count0 = 0;
 		
 		Get_Angle();
-
+		SpeedLeft=Get_Count1();
+		SpeedRight=Get_Count2();
+		Encoder_Clear();
 		if(CarMode!=IDLE)
 		{
-			Angle_PIDControl();//角度环控制函数，详见PID.c
+			Balance_PIDControl();//直立PID控制函数，详见PID.c
 		}else{
 			Motor_SetPWM(1,0);
 			Motor_SetPWM(2,0);
+			SpeedPID.ErrorInt=0;
 		}
-	}
-	
-	
-	if(Count2>=10)//每10ms获取一次编码器计数值
-	{
-		Count2=0;
-		SpeedAndTurn_PIDControl();
-		
 	}
 	
 }

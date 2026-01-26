@@ -22,9 +22,9 @@ float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 PID_t AnglePID={
-	.Kp=360.0,
+	.Kp=540.0,
 	.Ki=0.0,
-	.Kd=1800.0,
+	.Kd=1200.0,
 	
 	.OutOffset=0.0,	//输出偏移值,让电机动起来的最小PWM
 	.Target=0.f,
@@ -34,13 +34,13 @@ PID_t AnglePID={
 };
 
 PID_t SpeedPID={	//速度环通过控制目标角度控制行进
-	.Kp=-3.5,
-	.Ki=0.0,
+	.Kp=-0.8,
+	.Ki=0.8/200.f,
 	.Kd=0.0,
 	
 	.Target=0.f,
-	.OutMax=25,//最大倾斜角度
-	.OutMin=-25,
+	.OutMax=20,//最大倾斜角度
+	.OutMin=-20,
 	
 };
 

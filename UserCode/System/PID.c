@@ -27,7 +27,7 @@ void PID_Update(PID_t *p)			//一般PID函数
 		   + p->Ki * p->ErrorInt
 	+ p->Kd * (p->Error0 - p->Error1);				
 		   
-	//-p->Kd*(p->Actual-p->Actual1);微分先行，将对误差的微分改为对实际值的微分
+	//-p->Kd*(p->Actual-p->Actual1);//微分先行，将对误差的微分改为对实际值的微分
 	
 //	if(p->Out>0){p->Out+=p->OutOffset;}			//输出偏移
 //	if(p->Out<0){p->Out-=p->OutOffset;}
@@ -94,6 +94,7 @@ void SpeedAndTurn_PIDControl(void)
 		{
 			//速度环
 			SpeedPID.Actual=AveSpeed;
+			//if(SpeedPID.Actual<5&&SpeedPID.Actual>-5)SpeedPID.Actual=0;//速度环死区
 			PID_Update(&SpeedPID);
 			AnglePID.Target=SpeedPID.Out;
 			//转向环

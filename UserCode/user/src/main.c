@@ -22,9 +22,9 @@ float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 PID_t AnglePID={
-	.Kp=850.0,
+	.Kp=360.0,
 	.Ki=0.0,
-	.Kd=1400.0,
+	.Kd=1800.0,
 	
 	.OutOffset=0.0,	//输出偏移值,让电机动起来的最小PWM
 	.Target=0.f,
@@ -34,13 +34,13 @@ PID_t AnglePID={
 };
 
 PID_t SpeedPID={	//速度环通过控制目标角度控制行进
-	.Kp=0.0,
+	.Kp=-3.5,
 	.Ki=0.0,
 	.Kd=0.0,
 	
 	.Target=0.f,
-	.OutMax=15,//最大倾斜角度
-	.OutMin=-15,
+	.OutMax=25,//最大倾斜角度
+	.OutMin=-25,
 	
 };
 
@@ -129,7 +129,7 @@ void pit_handler (void)
 	}
 	
 	
-	if(Count2>=50)//每50ms获取一次编码器计数值
+	if(Count2>=10)//每10ms获取一次编码器计数值
 	{
 		Count2=0;
 		SpeedAndTurn_PIDControl();
@@ -161,17 +161,17 @@ void Menu_UpDate(void)
 	
 
 	//将最新参数赋值给参与计算的变量
-	AnglePID.Kp = Menu_GetValue(STAND_PID_MENU, 0)*1000;
-	AnglePID.Ki = Menu_GetValue(STAND_PID_MENU, 1)*1000;
-	AnglePID.Kd = Menu_GetValue(STAND_PID_MENU, 2)*1000;
+//	AnglePID.Kp = Menu_GetValue(STAND_PID_MENU, 0)*1000;
+//	AnglePID.Ki = Menu_GetValue(STAND_PID_MENU, 1)*1000;
+//	AnglePID.Kd = Menu_GetValue(STAND_PID_MENU, 2)*1000;
 
-	SpeedPID.Kp = Menu_GetValue(SPEED_PID_MENU, 0);
-	SpeedPID.Ki = Menu_GetValue(SPEED_PID_MENU, 1);
-	SpeedPID.Kd = Menu_GetValue(SPEED_PID_MENU, 2);
+//	SpeedPID.Kp = Menu_GetValue(SPEED_PID_MENU, 0);
+//	SpeedPID.Ki = Menu_GetValue(SPEED_PID_MENU, 1);
+//	SpeedPID.Kd = Menu_GetValue(SPEED_PID_MENU, 2);
 
-	TurnPID.Kp = Menu_GetValue(TURNING_PID_MENU, 0);
-	TurnPID.Ki = Menu_GetValue(TURNING_PID_MENU, 1);
-	TurnPID.Kd = Menu_GetValue(TURNING_PID_MENU, 2);
+//	TurnPID.Kp = Menu_GetValue(TURNING_PID_MENU, 0);
+//	TurnPID.Ki = Menu_GetValue(TURNING_PID_MENU, 1);
+//	TurnPID.Kd = Menu_GetValue(TURNING_PID_MENU, 2);
 	   
 }
 

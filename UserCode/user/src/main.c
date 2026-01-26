@@ -40,7 +40,7 @@ PID_t AnglePID={
 };
 
 PID_t SpeedPID={	
-	.Kp=-700.0,
+	.Kp=-750.0,
 	.Ki=-3.5,
 	.Kd=0.0,
 	
@@ -51,8 +51,8 @@ PID_t SpeedPID={
 };
 
 PID_t TurnPID={
-	.Kp=-3000.0,
-	.Ki=-200.0,
+	.Kp=-2000.0,
+	.Ki=0.0,
 	.Kd=0,
 	
 	.Target=0.f,

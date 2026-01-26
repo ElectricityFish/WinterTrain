@@ -88,5 +88,45 @@ void Balance_PIDControl(void)
 }
 
 
+/** 
+ * @brief 循迹环
+ * @note 参数定义在main函数里方便修改
+ * @return 无返回值，运行时进行调控，不运行时仍会测速
+ */
+extern PID_t SensorPID;
+void Sensor_PIDControl(void)				//循迹PID函数，至于为啥不叫Trace，这是个历史遗留问题（哭）
+{	
+	if (!(CarMode == MODE_2 || CarMode == MODE_3)) return;
 
+	static int prev_track_state = 0;
+	static int cur_track_state = 0;	// 这么搞主要是为了检测跳变
+
+	prev_track_state = cur_track_state;
+	cur_track_state = Sensor_CheckTrack();
+
+	if (prev_track_state == 0 && cur_track_state == 1) { // 看看有没有丢线，丢了就要做另外的事了，而且得注意，这个操作是一次性的，我们得置一个标志位
+		// 这里缺声光模块的代码 WIP
+		if (CarMode == MODE_2) {
+			TurnPID.Target = 0.0f; // 直行呗，扫到线了再说
+		} else {
+			// WIP 这个得好好想想，我们可能需要实际的去测如何转向，首先是不能一直把Target设为一个定值
+			// 这里要填写一个转向函数，然后置一个标志位 WIP
+			// 转完之后的TurnPID Target理应是0，所以只需要一个转向函数就够了
+		}
+		return; // 直接return掉防止干扰
+	} else if (prev_track_state == 1 && cur_track_state == 0) {
+		// 这里缺声光模块的代码 WIP
+	} else if (prev_track_state == 1 && cur_track_state == 1) {
+		return ; // 丢线状态下面PID就别算了吧，哈
+	}
+
+	double sensor_error = Sensor_ComplementaryFilteredError();
+	SensorPID.Actual = sensor_error;
+
+	PID_Update(&SensorPID);
+
+	TurnPID.Target = SensorPID.Out;
+	SpeedPID.Target = 100.0f;		// 这个速度倒时候看需求
+
+}
 

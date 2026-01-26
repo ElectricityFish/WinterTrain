@@ -97,12 +97,12 @@ void run_distance_pid(void)
 	*/
 	if(distance_pid.Out != 0)
 	{
-		Moto_SetPWM(1,0+distance_pid.Out);
-		Moto_SetPWM(2,0+distance_pid.Out);
+		Motor_SetPWM(1,0+distance_pid.Out);
+		Motor_SetPWM(2,0+distance_pid.Out);
 	}
 	else
 	{
-		Moto_SetPWM(1,0);
-		Moto_SetPWM(2,0);
+		Motor_SetPWM(1,0);
+		Motor_SetPWM(2,0);
 	}
 }

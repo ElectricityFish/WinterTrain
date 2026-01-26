@@ -66,12 +66,12 @@ void turn_angle_pid(void)
 	*/
 	if(turn_pid.Out != 0)
 	{
-		Moto_SetPWM(1,0 + turn_pid.Out/2);   
-		Moto_SetPWM(2,0 - turn_pid.Out/2);
+		Motor_SetPWM(1,0 + turn_pid.Out/2);   
+		Motor_SetPWM(2,0 - turn_pid.Out/2);
 	}
 	else
 	{
-		Moto_SetPWM(1,0);
-		Moto_SetPWM(2,0);
+		Motor_SetPWM(1,0);
+		Motor_SetPWM(2,0);
 	}
 }

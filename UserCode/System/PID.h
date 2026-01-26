@@ -1,12 +1,21 @@
 #ifndef __PID_H
 #define __PID_H
 
+/*****************************************************
+ * @brief PID结构体
+ * @note  Angle、Speed、Turn、SensorPID都基于这个结构体
+ * @param Kp_Ki_Kd 三个参数
+ * @param Error0 相当于Current_Error
+ * @param Error1 相当于Previous_Error
+ * @param Out    PID输出
+ * @param Actual 实际值，相当于Current_Actual
+ * @param Actual1 相当于Previous_Actual
+ *****************************************************/
 typedef struct {
 	float Target;
 	float Actual;
 	float Actual1;
 	float Out;
-	
 	
 	float Kp;
 	float Ki;

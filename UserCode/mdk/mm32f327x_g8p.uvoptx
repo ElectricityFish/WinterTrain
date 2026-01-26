@@ -2334,8 +2334,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\System\menu.c</PathWithFileName>
-      <FilenameWithoutPath>menu.c</FilenameWithoutPath>
+      <PathWithFileName>..\System\Menu.c</PathWithFileName>
+      <FilenameWithoutPath>Menu.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -2346,8 +2346,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\System\menu.h</PathWithFileName>
-      <FilenameWithoutPath>menu.h</FilenameWithoutPath>
+      <PathWithFileName>..\System\Menu.h</PathWithFileName>
+      <FilenameWithoutPath>Menu.h</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

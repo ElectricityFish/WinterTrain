@@ -4,19 +4,25 @@
 #include "Sensor.h"
 #include "BuzzerAndLED.h"
 #include "Kfilter.h"
-#include "menu.h"
+#include "Menu.h"
 #include "PID.h"
 
+/* ==============================================================================================
+                                        全局变量声明
+   ============================================================================================== */
 
+///////////////////////////////////////////////////////////////////////////////////////////////// 姿态解算
 float gyro_yaw = 0, gyro_pitch = 0, gyro_roll = 0;
 float acc_yaw = 0, acc_pitch = 0, acc_roll = 0;
 int16 AX, AY, AZ;
 float Offset;
 float yaw, pitch, roll;
 KalmanFilter KF;
+///////////////////////////////////////////////////////////////////////////////////////////////// 小车模式
 
-boot_mode CarMode=IDLE;
+boot_mode CarMode = IDLE;
 
+///////////////////////////////////////////////////////////////////////////////////////////////// 小车控制
 float SpeedLeft,SpeedRight;
 float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
@@ -26,8 +32,8 @@ PID_t AnglePID={
 	.Ki=0.0,
 	.Kd=2000.0,
 	
-	.OutOffset=0.0,	//输出偏移值,让电机动起来的最小PWM
-	.Target=0.f,
+	.OutOffset=0.0,	// 输出偏移值,让电机动起来的最小PWM
+	.Target = 0.0f,
 	.OutMax=10000,
 	.OutMin=-10000,
 
@@ -55,27 +61,45 @@ PID_t TurnPID={
 	
 };
 
+PID_t SensorPID = {
+    .Kp         = 1.0f,
+    .Ki         = 1.0f,
+    .Kd         = 1.0f,
 
-void Menu_UpDate(void);//封装后的菜单更新函数
+	.Target     = 0.0f,
+    .OutMax     = 10000.0f,
+    .OutMin     = -10000.0f,
+};
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+/* ==============================================================================================
+                                        函数声明
+   ============================================================================================== */
+
+void Menu_UpDate(void); //封装后的菜单更新函数
+
+/* ==============================================================================================
+                                        主函数
+   ============================================================================================== */
 int main (void)
 {
-    clock_init(SYSTEM_CLOCK_120M);                                              // 初始化芯片时钟 工作频率为 120MHz
-    debug_init();                                                               // 初始化默认 Debug UART
+/////////////////////////////////////////////////////////////////////////////////////////////////
+    clock_init(SYSTEM_CLOCK_120M);                       	// 初始化芯片时钟 工作频率为 120MHz
+    debug_init();                                        	// 初始化默认 Debug UART
 	
-	BuzzerAndLED_Init();
-	pit_ms_init(TIM6_PIT, 1);                                            // 初始化 PIT 为周期中断 1ms 周期
-    interrupt_set_priority(TIM6_IRQn, 0);                                // 设置 PIT 对周期中断的中断优先级为 0
+	BuzzerAndLED_Init();									// 蜂鸣器初始化
+	pit_ms_init(TIM6_PIT, 1);                            	// 初始化 PIT 为周期中断 1ms 周期
+    interrupt_set_priority(TIM6_IRQn, 0);                	// 设置 PIT 对周期中断的中断优先级为 0
 	
-	
-	Motor_Init();
-	Encoder_Init();
-	Sensor_Init();
+	Motor_Init();											// 电机初始化
+	Encoder_Init();											// 编码器初始化
+	Sensor_Init();											// 循迹模块初始化
     
-
-	Kalman_Init(&KF,0.0001f,0.003f,0.03f);
-    key_init(10);
-	Menu_Init();//初始化菜单，内含OLED初始化
-	mpu6050_init();
+	Kalman_Init(&KF, 0.0001f, 0.003f, 0.03f);				// 滤波初始化
+    key_init(10);											// 按键初始化
+	Menu_Init();											// 初始化菜单，内含OLED初始化
+	mpu6050_init();											// 姿态传感器初始化
+/////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
     {	
@@ -103,12 +127,13 @@ void pit_handler (void)
 	
 	if(Count1>=10)//每10ms进行一次按钮检测，和菜单更新，并从菜单获取最新参数
 	{
-		Count1=0;
+		Count1 = 0;
+
 		Menu_UpDate();
 		Menu_JustRefreshValue();
 	}
-
-	if(Count0>=10)//每10ms进行一次姿态解算，和平衡态控制
+///////////////////////////////////////////////////////////////////////////////////////////////// 姿态解算，角度环控制
+	if (Count0 >= 10) // 每10ms进行一次姿态解算，和平衡态控制
 	{
 		Count0 = 0;
 		
@@ -149,7 +174,6 @@ void Menu_UpDate(void)
            Menu_SavePIDToFlash();
        }
 	
-
 	//将最新参数赋值给参与计算的变量
 //	AnglePID.Kp = Menu_GetValue(STAND_PID_MENU, 0)*1000;
 //	AnglePID.Ki = Menu_GetValue(STAND_PID_MENU, 1)*1000;
@@ -162,6 +186,10 @@ void Menu_UpDate(void)
 //	TurnPID.Kp = Menu_GetValue(TURNING_PID_MENU, 0);
 //	TurnPID.Ki = Menu_GetValue(TURNING_PID_MENU, 1);
 //	TurnPID.Kd = Menu_GetValue(TURNING_PID_MENU, 2);
+
+	SensorPID.Kp = Menu_GetValue(SENSOR_PID_MENU, 0);
+	SensorPID.Ki = Menu_GetValue(SENSOR_PID_MENU, 1);
+	SensorPID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
 	   
 }
 

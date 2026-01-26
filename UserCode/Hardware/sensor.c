@@ -4,8 +4,8 @@
 * @author MxBz_
 *************************************************************************************************/
 #include "zf_common_headfile.h"
-#include "sensor.h"
-#include "menu.h"
+#include "Sensor.h"
+#include "Menu.h"
 #include "PID.h"
 
 /* ==============================================================================================
@@ -17,24 +17,8 @@ double L3_WEIGHT = 5.0f;           // 次外面灯的权重
 double L2_WEIGHT = 3.0f;           // 次内部灯的权重
 double L1_WEIGHT = 1.0f;           // 内部灯的权重
 
-PID_t Sensor_PID = {
-    .Target     = 0.0f,
-    .Actual     = 0.0f,
-    .Actual1    = 0.0f,
-    .Out        = 0.0f,
-
-    .Kp         = 1.0f,
-    .Ki         = 1.0f,
-    .Kd         = 1.0f,
-
-    .Error0     = 0.0f,
-    .Error1     = 0.0f,
-    .ErrorInt   = 0.0f,
-
-    .OutMax     = 10.0f,
-    .OutMin     = -10.0f,
-    .OutOffset  = 0.0f,
-};
+int track_lost_counter;
+double yaw_offset;
 
 /* ==============================================================================================
                                         函数定义
@@ -58,27 +42,19 @@ void Sensor_Init(void)
     
 }
 
-/**
- * @brief 更新权重
- * @note 过渡
- * @return 
+/** 
+ * @brief 获取 传感器Error值
+ * @note 给每个灯一个权重，然后加和，等下传到sensor_pid去 (离散部分)
+ * @return 一个 double 值，传到互补滤波去
  */
-void Sensor_UpdateWeight(void)
+double Sensor_GetSensorError(void)
 {
+    // 更新权重
     int16_t L4_WEIGHT = Menu_GetValue(SENSOR_MENU, 4);
     int16_t L3_WEIGHT = Menu_GetValue(SENSOR_MENU, 3);
     int16_t L2_WEIGHT = Menu_GetValue(SENSOR_MENU, 2);
     int16_t L1_WEIGHT = Menu_GetValue(SENSOR_MENU, 1);
-}
 
-/** 
- * @brief 获取 Error 值
- * @note 给每个灯一个权重，然后加和，等下传到sensor_pid去
- * @return 一个 `int16_t` 值，代表权重后四舍五入的Error
- */
-double Sensor_GetError(void)
-{
-    Sensor_UpdateWeight(); // 更新一下
     double Error = 0;
     // LEFT
     Error -= ( L4_WEIGHT * Left4
@@ -94,17 +70,55 @@ double Sensor_GetError(void)
     return Error;
 }
 
+extern float gyro_yaw;
+const float dt = 0.01f;         // 10ms 的采样频率
 /** 
- * @brief 更新Sensor_pid
- * @note 你应该在每一个计算Sensor的PID之前用一次这个函数
- * @return 
+ * @brief 获取 线性Error值
+ * @note 详情见我的 1.26学习日志，拟合函数值见Sensor.h
+ * @return 一个 double 值，传到互补滤波去
  */
-void Sensor_UpdateSensorPID(void)
+double Sensor_GetYawError(void)
 {
-    Sensor_PID.Kp = Menu_GetValue(SENSOR_PID_MENU, 0);
-    Sensor_PID.Ki = Menu_GetValue(SENSOR_PID_MENU, 1);
-    Sensor_PID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
-    Sensor_PID.Error0 = Sensor_GetError();
+    double delta_yaw = gyro_yaw * dt;
+    yaw_offset += delta_yaw;            // 这样记录的就是相对于目标值的偏差了
+    double mapped_integral_error = yaw_offset * MAPPING_FACTOR;
+    return mapped_integral_error; 
 }
 
+/** 
+ * @brief 为离散Error和线性Error做互补滤波
+ * @note 一个简单的互补滤波，ALPHA请在Sensor.h中调整
+ * @return 返回一个 double, 用于PID
+ */
+double Sensor_ComplementaryFilteredError(void)
+{
+    static double Filtered_Error;
 
+    double Sensor_Error = Sensor_GetSensorError();
+    double Yaw_Error = Sensor_GetYawError();
+
+    Filtered_Error = Sensor_Error * ALPHA 
+                   + (Yaw_Error + Filtered_Error) * (1 - ALPHA);
+
+    return Filtered_Error;
+}
+
+/** 
+ * @brief 检查是不是 >TRACK LOST<
+ * @note 卡车丢失
+ * @return 0表示正常，1表示卡车丢失
+ */
+int Sensor_CheckTrack(void) 
+{
+    if (Sensor_GetSensorError() == 0) {
+        track_lost_counter++;
+        yaw_offset = 0;             // 在线上，所以 yaw_offset = 0
+    } else {
+        track_lost_counter = 0;
+    }
+    if (track_lost_counter >= 50) { // 10ms检测一次在SensorPID里调用一次，所以0.5s没检测到线就是断线
+        return 1;
+    } else {
+        return 0;
+    }
+}

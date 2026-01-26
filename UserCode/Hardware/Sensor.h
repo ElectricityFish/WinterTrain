@@ -7,6 +7,8 @@
                                         宏定义和枚举类型
    ============================================================================================== */
 #define SENSOR_COUNT            (8)
+#define ALPHA                   (0.7f)
+#define MAPPING_FACTOR          (1.0f)
 
 #define Right4                  (gpio_get_level   (E8))
 #define Right3                  (gpio_get_level   (E9))
@@ -19,19 +21,13 @@
 #define Left1                   (gpio_get_level   (E15))
 
 /* ==============================================================================================
-                                        重要变量申明
-   ============================================================================================== */
-
-extern PID_t Sensor_PID;
-
-/* ==============================================================================================
                                         函数申明
    ============================================================================================== */
 
 void Sensor_Init            (void);
-double Sensor_GetError      (void);
-// 是这样的，我专门给 Sensor 开了个 PID，这样要算Sensor的PID的话直接 PID_Update(&Sensor_PID) 就行了
-// 但你首先得 ensor_UpdateSensorPID 一下，不然Error0没法更新
-void Sensor_UpdateSensorPID (void); 
+double Sensor_GetSensorError      (void);
+double Sensor_GetYawError      (void);
+double Sensor_ComplementaryFilteredError (void);
+int Sensor_CheckTrack       (void); 
 
 #endif

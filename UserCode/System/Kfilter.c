@@ -1,6 +1,4 @@
 #include "zf_common_headfile.h"
-
-
 #include <math.h>
 #include <stdio.h>
 

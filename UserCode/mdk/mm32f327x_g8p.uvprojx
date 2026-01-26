@@ -1283,14 +1283,14 @@
               <FilePath>..\System\PID.h</FilePath>
             </File>
             <File>
-              <FileName>menu.c</FileName>
+              <FileName>Menu.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\System\menu.c</FilePath>
+              <FilePath>..\System\Menu.c</FilePath>
             </File>
             <File>
-              <FileName>menu.h</FileName>
+              <FileName>Menu.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\System\menu.h</FilePath>
+              <FilePath>..\System\Menu.h</FilePath>
             </File>
             <File>
               <FileName>Kfilter.c</FileName>

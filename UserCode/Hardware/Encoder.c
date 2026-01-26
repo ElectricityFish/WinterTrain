@@ -19,16 +19,12 @@ void Encoder_Init(void)
 //encoder_get_count(ENCODER_QUADDEC);
 int16_t Get_Count1(void)															
 {
-	
 	return  encoder_get_count(ENCODER_QUADDEC1);
-	
 }
 
 int16_t Get_Count2(void)															
 {
-    
 	return  encoder_get_count(ENCODER_QUADDEC2);
-	
 }
 
 void Encoder_Clear(void)

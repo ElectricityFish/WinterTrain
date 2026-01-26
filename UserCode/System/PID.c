@@ -3,9 +3,9 @@
 #include "Sensor.h"
 #include "Motor.h"
 #include "Encoder.h"
-#include "menu.h"
+#include "mMenu.h"
 
-void PID_Update(PID_t *p)			//一般PID函数
+void PID_Update(PID_t *p)			// 一般PID函数
 {
 	p->Error1 = p->Error0;
 	p->Error0 = p->Target - p->Actual;
@@ -19,7 +19,7 @@ void PID_Update(PID_t *p)			//一般PID函数
 		p->ErrorInt = 0;
 	}
 	
-	if(p->ErrorInt>=p->OutMax/2)p->ErrorInt=p->OutMax/2.f;	//积分限幅
+	if(p->ErrorInt>=p->OutMax/2)p->ErrorInt=p->OutMax/2.f;	// 积分限幅
 	if(p->ErrorInt<=p->OutMin/2)p->ErrorInt=p->OutMin/2.f;
 	
 	
@@ -37,7 +37,6 @@ void PID_Update(PID_t *p)			//一般PID函数
 	
 	p->Actual1=p->Actual;
 }
-
 
 /** 
  * @brief 平衡PID函数

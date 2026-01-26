@@ -21,11 +21,11 @@ void Motor_Init(void)
 
 }	
 
-void Motor_SetPWM(uint8 CH,int16_t PWM)											//第一个参数表示初始化哪一个通道，1或2，第二个参数表示PWM值,最大为10000
+void Motor_SetPWM(uint8 CH, int16_t PWM)											//第一个参数表示初始化哪一个通道，1或2，第二个参数表示PWM值,最大为10000
 {
-	if (CH==1)
+	if (CH == 1)
 	{
-		if (PWM>=0)
+		if (PWM >= 0)
 		{
 			gpio_set_level(A2, 1);
 			gpio_set_level(A3, 0);
@@ -37,13 +37,13 @@ void Motor_SetPWM(uint8 CH,int16_t PWM)											//第一个参数表示初始�
 		}
 	}
 	
-	if(CH==2){
-		if(PWM>=0)
+	if(CH == 2) {
+		if(PWM >= 0)
 		{
 			gpio_set_level (B10, 1);
 			gpio_set_level (B11, 0);
 			pwm_set_duty(PWM_CH2, PWM);
-		}else{
+		} else {
 			gpio_set_level (B10, 0);
 			gpio_set_level (B11, 1);
 			pwm_set_duty(PWM_CH2,-PWM);

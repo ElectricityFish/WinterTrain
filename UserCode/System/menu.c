@@ -95,25 +95,31 @@ Interface_TypeDef interface[100] = {
     },
     [PID_CONTROL_MENU] = {             // PID界面
         .ID = PID_CONTROL_MENU,
-        .option_count = 4,
+        .option_count = 6,
         .option_text = {
             "ANGLE PID", 
             "SPEED PID", 
             "TURNING PID", 
-            "SENSOR PID"
+            "SENSOR PID",   
+            "TURN PID", 
+            "DISTANCE PID",
         },
         .option_mode = {
             SUBINTERFACE, 
             SUBINTERFACE, 
             SUBINTERFACE, 
-            SUBINTERFACE
+            SUBINTERFACE,
+            SUBINTERFACE,
+            SUBINTERFACE,
         },
         .super_interface = MAIN_MENU,
         .subinterface = {
             STAND_PID_MENU, 
             SPEED_PID_MENU, 
             TURNING_PID_MENU, 
-            SENSOR_PID_MENU
+            SENSOR_PID_MENU,
+            TURN_PID_MENU,
+            DISTANCE_PID_MENU,
         },
     },
     [STAND_PID_MENU] = {             // Stand PID界面
@@ -215,6 +221,54 @@ Interface_TypeDef interface[100] = {
         .value_range = {100, 100, 100},
         .super_interface = PID_CONTROL_MENU,
     },
+    [TURN_PID_MENU] = {             // 定转向 PID界面
+        .ID = TURN_PID_MENU,
+        .option_count = 7,
+        .option_text = {
+            "Turn kP", 
+            "Turn kI", 
+            "Turn kD", 
+            "=====x1=====", 
+            "kP save", 
+            "kI save", 
+            "kD save"},
+        .option_mode = {
+            EDITABLE, 
+            EDITABLE, 
+            EDITABLE, 
+            PURE_TEXT,
+            READ_FLASH, 
+            READ_FLASH, 
+            READ_FLASH
+        },
+        .option_value = {10, 10, 10, -1, 0, 0, 0},
+        .value_range = {100, 100, 100},
+        .super_interface = PID_CONTROL_MENU,
+    },
+    [DISTANCE_PID_MENU] = {             // 定转向 PID界面
+        .ID = DISTANCE_PID_MENU,
+        .option_count = 7,
+        .option_text = {
+            "Dista kP", 
+            "Dista kI", 
+            "Dista kD", 
+            "=====x1=====", 
+            "kP save", 
+            "kI save", 
+            "kD save"},
+        .option_mode = {
+            EDITABLE, 
+            EDITABLE, 
+            EDITABLE, 
+            PURE_TEXT,
+            READ_FLASH, 
+            READ_FLASH, 
+            READ_FLASH
+        },
+        .option_value = {10, 10, 10, -1, 0, 0, 0},
+        .value_range = {100, 100, 100},
+        .super_interface = PID_CONTROL_MENU,
+    },
     [SENSOR_MENU] = {             // SENSOR权重界面
         .ID = SENSOR_MENU,
         .option_count = 5,
@@ -247,6 +301,16 @@ short                   current_option_index;           // 目前选的选项的
 short                   current_mode;                   // 目前的模式：EDIT_MODE 和 SELECT_MODE
 boot_mode               running_mode;                   // 车是否在某个状态运行中
 
+// 如果要新增PID，你需要去 NEED_FLASH_MENU)COUNT 那边改一下
+interface_id NEED_FLASH_MENU_ID [NEED_FLASH_MENU_COUNT] = {
+    STAND_PID_MENU,
+    SPEED_PID_MENU,
+    TURNING_PID_MENU,
+    SENSOR_PID_MENU,
+    TURN_PID_MENU,
+    DISTANCE_PID_MENU,
+};
+
 extern float pitch;
 extern float yaw;
 
@@ -261,26 +325,24 @@ extern float yaw;
  */
 void Menu_ReadFlashToValue(void)
 {
-    flash_read_page_to_buffer(127, 0); // Stand PID
-    interface[STAND_PID_MENU].option_value[0] = flash_union_buffer[0].int8_type; // P
-    interface[STAND_PID_MENU].option_value[1] = flash_union_buffer[1].int8_type; // I
-    interface[STAND_PID_MENU].option_value[2] = flash_union_buffer[2].int8_type; // D
+    flash_read_page_to_buffer(127, 0);
+    for (int i = 0;i < NEED_FLASH_MENU_COUNT;i++) {
+        interface[NEED_FLASH_MENU_ID[i]].option_value[0] = flash_union_buffer[i * 3 + 0].int8_type;
+        interface[NEED_FLASH_MENU_ID[i]].option_value[1] = flash_union_buffer[i * 3 + 1].int8_type;
+        interface[NEED_FLASH_MENU_ID[i]].option_value[2] = flash_union_buffer[i * 3 + 2].int8_type;
+    }
     flash_buffer_clear();
-    flash_read_page_to_buffer(127, 1); // Speed PID
-    interface[SPEED_PID_MENU].option_value[0] = flash_union_buffer[0].int8_type; // P
-    interface[SPEED_PID_MENU].option_value[1] = flash_union_buffer[1].int8_type; // I
-    interface[SPEED_PID_MENU].option_value[2] = flash_union_buffer[2].int8_type; // D
-    flash_buffer_clear();
-    flash_read_page_to_buffer(127, 2); // Turning PID
-    interface[TURNING_PID_MENU].option_value[0] = flash_union_buffer[0].int8_type; // P
-    interface[TURNING_PID_MENU].option_value[1] = flash_union_buffer[1].int8_type; // I
-    interface[TURNING_PID_MENU].option_value[2] = flash_union_buffer[2].int8_type; // D
-    flash_buffer_clear();
-    flash_read_page_to_buffer(127, 3); // Sensor PID
-    interface[TURNING_PID_MENU].option_value[0] = flash_union_buffer[0].int8_type; // P
-    interface[TURNING_PID_MENU].option_value[1] = flash_union_buffer[1].int8_type; // I
-    interface[TURNING_PID_MENU].option_value[2] = flash_union_buffer[2].int8_type; // D
-    flash_buffer_clear();
+}
+
+// 1 为是
+int Menu_CheckNeedFlash (void)
+{
+    for (int i = 0; i < NEED_FLASH_MENU_COUNT; i++) {
+        if (current_interface == NEED_FLASH_MENU_ID[i]) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 /** 
@@ -290,30 +352,15 @@ void Menu_ReadFlashToValue(void)
  */
 void Menu_RefreshValue(void)
 {
-    if (!(current_interface == STAND_PID_MENU || current_interface == SPEED_PID_MENU || current_interface == TURNING_PID_MENU || current_interface == SENSOR_PID_MENU)) {
+    int Memory_position = Menu_CheckNeedFlash();
+    if (Memory_position == -1) {
         return;
     }
-    int page_index = 0;
-    switch (current_interface) {
-        case STAND_PID_MENU:
-            page_index = 0;
-            break;
-        case SPEED_PID_MENU:
-            page_index = 1;
-            break;
-        case TURNING_PID_MENU:
-            page_index = 2;
-            break;
-        case SENSOR_PID_MENU:
-            page_index = 3;
-            break;
-        default:
-            break;
-        }
-    flash_read_page_to_buffer(127, page_index);
-    interface[current_interface].option_value[4] = flash_union_buffer[0].int8_type; // P
-    interface[current_interface].option_value[5] = flash_union_buffer[1].int8_type; // I
-    interface[current_interface].option_value[6] = flash_union_buffer[2].int8_type; // D
+
+    flash_read_page_to_buffer(127, 0);
+    interface[current_interface].option_value[4] = flash_union_buffer[Memory_position * 3 + 0].int8_type; // P
+    interface[current_interface].option_value[5] = flash_union_buffer[Memory_position * 3 + 1].int8_type; // I
+    interface[current_interface].option_value[6] = flash_union_buffer[Memory_position * 3 + 2].int8_type; // D
     // 读取并存储完毕
 }
 
@@ -453,36 +500,22 @@ void Menu_JustRefreshValue(void)
  */
 void Menu_SavePIDToFlash(void)
 {
-    if (!(current_interface == STAND_PID_MENU || current_interface == SPEED_PID_MENU || current_interface == TURNING_PID_MENU || current_interface == SENSOR_PID_MENU)) {
+    int Memory_position = Menu_CheckNeedFlash();
+    if (Memory_position == -1) {
         return;
     }
-    int page_index = 0;
-    switch (current_interface) {
-        case STAND_PID_MENU:
-            page_index = 0;
-            break;
-        case SPEED_PID_MENU:
-            page_index = 1;
-            break;
-        case TURNING_PID_MENU:
-            page_index = 2;
-            break;
-        case SENSOR_PID_MENU:
-            page_index = 3;
-            break;
-        default:
-            break;
-    }
-    // 一个PID数据存一个区，4个页里面占3个，现在是Stand PID
-    if (flash_check(127, page_index)) {
-        flash_erase_page(127, page_index);     // P
+    // 是这样的，为了压缩空间，我把6个PID全部存在一页里面了，也就是说，每一次Save都需要一个页存，一个页Save
+    if (flash_check(127, 0)) {
+        flash_erase_page(127, 0);
     } 
     flash_buffer_clear();
     // 清缓存，写缓存，发缓存
-    flash_union_buffer[0].int8_type = interface[current_interface].option_value[0]; // P
-    flash_union_buffer[1].int8_type = interface[current_interface].option_value[1]; // I
-    flash_union_buffer[2].int8_type = interface[current_interface].option_value[2]; // D
-    flash_write_page_from_buffer(127, page_index);
+    for (int i = 0;i < NEED_FLASH_MENU_COUNT;i++) {
+        flash_union_buffer[i * 3 + 0].int8_type = interface[NEED_FLASH_MENU_ID[i]].option_value[0];
+        flash_union_buffer[i * 3 + 1].int8_type = interface[NEED_FLASH_MENU_ID[i]].option_value[1];
+        flash_union_buffer[i * 3 + 2].int8_type = interface[NEED_FLASH_MENU_ID[i]].option_value[2];
+    }
+    flash_write_page_from_buffer(127, 0);
     // 存储完成
     oled_show_string(100, 6, "SVD");
 }

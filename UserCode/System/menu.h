@@ -8,6 +8,7 @@
 #define CURRENT_OPTION_MODE             (interface[current_interface].option_mode[current_option_index])
 #define CURRENT_OPTION_VALUE            (interface[current_interface].option_value[current_option_index])
 #define CURRENT_OPTION_VALUE_RANGE      (interface[current_interface].value_range[current_option_index])
+#define NEED_FLASH_MENU_COUNT           6
 
 extern float SpeedLeft, SpeedRight;
 #define LEFT_ENCODER                    SpeedLeft//encoder_get_count(TIM4_ENCODER)
@@ -30,6 +31,9 @@ typedef enum interface_id
         SPEED_PID_MENU,     // - PID菜单下的速度PID
         TURNING_PID_MENU,   // - PID菜单下的转向PID
         SENSOR_PID_MENU,    // - PID菜单下的循迹转向PID
+        TURN_PID_MENU,      // - 定转向 PID
+        DISTANCE_PID_MENU   // - 距离PID
+        
 
 } interface_id;
 

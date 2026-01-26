@@ -25,6 +25,7 @@ void Left_EncodeGet(void);
 float Right_Distance(void);
 float Left_Distance(void);
 void distance_pid_UpdatePID(void);
-void run_distance(uint16_t distance);
+void run_distance_start(float target_distance);
+void run_distance_pid(void);
 
 #endif

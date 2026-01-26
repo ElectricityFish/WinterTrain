@@ -19,6 +19,7 @@ typedef struct {
 } Turn_PID;
 
 void turn_pid_UpdatePID(void);
-void turn_angle(uint16_t angle);
+void turn_angle_start(uint16 angle);
+void turn_angle_pid(void);
 
 #endif

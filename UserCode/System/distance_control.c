@@ -17,6 +17,7 @@ static float wheel_perimeter = 2.0f * pi * 3.40;
 
 static float distance_right = 0.0f;
 static float distance_left = 0.0f;
+static float distance = 0.0f;
 
 static uint16_t right_getvalue = 0;
 static uint16_t left_getvalue = 0;
@@ -58,16 +59,27 @@ Distance_PID distance_pid = {
 //这里添加一个通过菜单调参的函数
 void distance_pid_UpdatePID(void)
 {
-	
+//	distance_pid.Kp = Menu_GetValue(DISTANCE_PID_MENU, 0);
+//    distance_pid.Ki = Menu_GetValue(DISTANCE_PID_MENU, 1);
+//    distance_pid.Kd = Menu_GetValue(DISTANCE_PID_MENU, 2);
 }
 
 /*
 	功能：使小车能够前进/后退指定距离后停止
-	使用：run_distance(100)    //前进100cm
+	使用：run_distance_start(100)    //前进100cm
+	      run_distance_pid(void)    //放在中断函数里
 */
-void run_distance(uint16_t distance)
+void run_distance_start(float target_distance)
 {
-	distance_pid.Error0 = distance;
+	float present_distance = distance;
+	distance_pid.Target = distance + target_distance;
+}
+
+void run_distance_pid(void)
+{
+	distance = (Right_Distance() + Left_Distance()) / 2.0f;
+	distance_pid.Actual = distance;
+	distance_pid.Error0 = distance_pid.Target - distance_pid.Actual;
 	distance_pid.Error1 = distance_pid.Error0;
 	
 	if(distance_pid.Ki != 0){distance_pid.ErrorInt += distance_pid.Error0;}

@@ -1,0 +1,23 @@
+./objects/zf_driver_pit.o: ..\..\libraries\zf_driver\zf_driver_pit.c \
+  ..\..\libraries\sdk\hal_device_registers.h \
+  ..\..\libraries\sdk\mm32f3277g.h \
+  ..\..\libraries\sdk\CMSIS\Include\core_cm3.h \
+  D:\Keil_v5\ARM\ARMCLANG\include\stdint.h \
+  D:\Users\lwqxb\Desktop\WinterTrain\libraries\sdk\CMSIS\Include\cmsis_version.h \
+  D:\Users\lwqxb\Desktop\WinterTrain\libraries\sdk\CMSIS\Include\cmsis_compiler.h \
+  D:\Users\lwqxb\Desktop\WinterTrain\libraries\sdk\CMSIS\Include\cmsis_armclang.h \
+  D:\Keil_v5\ARM\ARMCLANG\include\arm_compat.h \
+  D:\Keil_v5\ARM\ARMCLANG\include\arm_acle.h \
+  ..\..\libraries\sdk\mm32f3277g_features.h \
+  ..\..\libraries\sdk\system_mm32f3277g.h \
+  ..\..\libraries\zf_common\zf_common_clock.h \
+  ..\..\libraries\zf_common\zf_common_typedef.h \
+  D:\Keil_v5\ARM\ARMCLANG\include\stdio.h \
+  D:\Keil_v5\ARM\ARMCLANG\include\stdbool.h \
+  D:\Keil_v5\ARM\ARMCLANG\include\stdarg.h \
+  D:\Keil_v5\ARM\ARMCLANG\include\string.h \
+  D:\Keil_v5\ARM\ARMCLANG\include\stdlib.h \
+  ..\..\libraries\zf_common\zf_common_debug.h \
+  ..\..\libraries\zf_common\zf_common_interrupt.h \
+  ..\..\libraries\zf_driver\zf_driver_timer.h \
+  ..\..\libraries\zf_driver\zf_driver_pit.h

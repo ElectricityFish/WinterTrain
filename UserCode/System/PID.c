@@ -4,6 +4,7 @@
 #include "Motor.h"
 #include "Encoder.h"
 #include "Menu.h"
+#include <math.h>
 
 void PID_Update(PID_t *p)			// 一般PID函数
 {
@@ -26,12 +27,7 @@ void PID_Update(PID_t *p)			// 一般PID函数
 	p->Out = p->Kp * p->Error0
 		   + p->Ki * p->ErrorInt
 	+ p->Kd * (p->Error0 - p->Error1);				
-		   
-	//-p->Kd*(p->Actual-p->Actual1);//微分先行，将对误差的微分改为对实际值的微分
-	
-//	if(p->Out>0){p->Out+=p->OutOffset;}			//输出偏移
-//	if(p->Out<0){p->Out-=p->OutOffset;}
-	
+		   	
 	if (p->Out > p->OutMax) {p->Out = p->OutMax;}
 	if (p->Out < p->OutMin) {p->Out = p->OutMin;}
 	
@@ -66,7 +62,14 @@ void Balance_PIDControl(void)
 	AnglePID.Actual=pitch;
 	PID_Update(&AnglePID);
 	
-	AveSpeed=(SpeedLeft+SpeedRight)/2.f;
+	float speed_filter = 1.0; 
+	if(fabs(pitch) < 3.5f ) {
+    speed_filter = 0.1f;  // 静态强滤波
+	} else {
+    speed_filter = 0.5f; // 动态弱滤波
+	}
+	
+	AveSpeed = AveSpeed * (1-speed_filter) + (SpeedLeft+SpeedRight)/2.f * speed_filter;//低通滤波
 	DifSpeed=SpeedLeft-SpeedRight;
 		
 	SpeedPID.Actual=AveSpeed;

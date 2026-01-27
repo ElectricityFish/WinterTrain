@@ -41,8 +41,8 @@ PID_t AnglePID={
 };
 
 PID_t SpeedPID={	
-	.Kp=-750.0,
-	.Ki=-3.5,
+	.Kp=-800.0,
+	.Ki=-3.0,
 	.Kd=0.0,
 	
 	.Target=0.f,

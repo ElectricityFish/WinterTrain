@@ -6,6 +6,7 @@
 #include "Kfilter.h"
 #include "Menu.h"
 #include "PID.h"
+#include "BlueSerial.h"
 
 /* ==============================================================================================
                                         全局变量声明
@@ -95,15 +96,20 @@ int main (void)
 	Encoder_Init();											// 编码器初始化
 	Sensor_Init();											// 循迹模块初始化
     
+	BludeSerial_Init();										//蓝牙串口初始化
 	Kalman_Init(&KF, 0.0001f, 0.003f, 0.03f);				// 滤波初始化
     key_init(10);											// 按键初始化
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
 /////////////////////////////////////////////////////////////////////////////////////////////////
-	
+
     while(1)
     {	
 		CarMode=Menu_GetCurMode();
+		if(CarMode==MODE_5)
+		{
+			BlueSerial_Control(&SpeedPID.Target,&TurnPID.Target);
+		}
     }
     
 }

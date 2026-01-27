@@ -1267,6 +1267,16 @@
               <FileType>5</FileType>
               <FilePath>..\Hardware\BuzzerAndLED.h</FilePath>
             </File>
+            <File>
+              <FileName>BlueSerial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\BlueSerial.c</FilePath>
+            </File>
+            <File>
+              <FileName>BlueSerial.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Hardware\BlueSerial.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

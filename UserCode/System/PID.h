@@ -32,7 +32,7 @@ typedef struct {
 
 
 void PID_Update(PID_t *p);					//一般PID函数
-void Balance_PIDControl(void);				//角度环PID函数
+void Balance_PIDControl(void);				//直立PID控制函数
 void Sensor_PIDControl(void);				//循迹PID函数，至于为啥不叫Trace，这是个历史遗留问题（哭）
 
 #endif

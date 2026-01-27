@@ -6,6 +6,9 @@
 #include "Kfilter.h"
 #include "Menu.h"
 #include "PID.h"
+#include "diskio.h"
+#include "turn_control.h"
+#include "distance_control.h"
 
 /* ==============================================================================================
                                         全局变量声明
@@ -44,7 +47,7 @@ PID_t SpeedPID={
 	.Ki=-3.5,
 	.Kd=0.0,
 	
-	.Target=0.f,
+	.Target=0.0f,
 	.OutMax=10000,
 	.OutMin=-10000,
 	
@@ -55,7 +58,7 @@ PID_t TurnPID={
 	.Ki=0.0,
 	.Kd=0,
 	
-	.Target=0.f,
+	.Target=0.0f,
 	.OutMax=5000.0,
 	.OutMin=-5000.0, 
 	
@@ -99,11 +102,22 @@ int main (void)
     key_init(10);											// 按键初始化
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
+	
+	//重置位置控制
+	reset_distance_control();
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
     {	
 		CarMode=Menu_GetCurMode();
+		if(key_get_state(KEY_3)) 
+		{
+			distance_position_control(10.0f);
+		}
+		if(key_get_state(KEY_4)) 
+		{
+			distance_position_control(-10.0f);
+		}
     }
     
 }
@@ -138,13 +152,26 @@ void pit_handler (void)
 		Count0 = 0;
 		
 		Get_Angle();
-		SpeedLeft=Get_Count1();
-		SpeedRight=Get_Count2();
+		SpeedLeft = Get_Count1();
+		SpeedRight = Get_Count2();
 		Encoder_Clear();
 		if(CarMode!=IDLE)
 		{
+			// 更新位置环控制（串级控制的外环）
+            if (is_distance_control_enabled) 
+			{
+                distance_control_update();
+            }
+			
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
-		}else{
+			
+			if (Is_Angle_Turning())
+			{
+				Update_Angle_Turn();
+			}
+		}
+		else
+		{
 			Motor_SetPWM(1,0);
 			Motor_SetPWM(2,0);
 			SpeedPID.ErrorInt=0;

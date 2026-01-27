@@ -4,6 +4,7 @@
 #include "Motor.h"
 #include "Encoder.h"
 #include "Menu.h"
+#include "distance_control.h"
 
 void PID_Update(PID_t *p)			// 一般PID函数
 {
@@ -68,6 +69,12 @@ void Balance_PIDControl(void)
 	
 	AveSpeed=(SpeedLeft+SpeedRight)/2.f;
 	DifSpeed=SpeedLeft-SpeedRight;
+	
+	// 重要：如果位置控制未启用，速度环目标应为0
+    if (!is_distance_control_enabled && !is_distance_reached) 
+	{
+        SpeedPID.Target = 0.0f;
+    }
 		
 	SpeedPID.Actual=AveSpeed;
 	PID_Update(&SpeedPID);

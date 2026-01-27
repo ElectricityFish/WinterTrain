@@ -137,7 +137,7 @@ void Get_Angle(void)
 		//姿态解算，使用卡尔曼滤波算法
 		
 		//yaw角解算（无加速度计校准）
-		gyro_yaw += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.001);
+		gyro_yaw += (mpu6050_gyro_transition(mpu6050_gyro_z / 100 * 100) * 0.01);
 		yaw = gyro_yaw;
 		
 		//pitch角解算（加速度计校准）

@@ -43,8 +43,8 @@ PID_t AnglePID={
 };
 
 PID_t SpeedPID={	
-	.Kp=-750.0,
-	.Ki=-3.5,
+	.Kp=-800.0,
+	.Ki=-3.0,
 	.Kd=0.0,
 	
 	.Target=0.0f,
@@ -110,14 +110,14 @@ int main (void)
     while(1)
     {	
 		CarMode=Menu_GetCurMode();
-		if(key_get_state(KEY_3)) 
-		{
-			distance_position_control(10.0f);
-		}
-		if(key_get_state(KEY_4)) 
-		{
-			distance_position_control(-10.0f);
-		}
+//		if(key_get_state(KEY_3)) 
+//		{
+//			distance_position_control(10.0f);
+//		}
+//		if(key_get_state(KEY_4)) 
+//		{
+//			distance_position_control(-10.0f);
+//		}
     }
     
 }

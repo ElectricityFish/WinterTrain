@@ -70,10 +70,16 @@ void Balance_PIDControl(void)
 	AveSpeed=(SpeedLeft+SpeedRight)/2.f;
 	DifSpeed=SpeedLeft-SpeedRight;
 	
-	// 重要：如果位置控制未启用，速度环目标应为0
-    if (!is_distance_control_enabled && !is_distance_reached) 
+	if (is_distance_control_enabled && !is_distance_reached){}
+	else 
 	{
+        // 位置控制未启用或已到达，速度目标为0
         SpeedPID.Target = 0.0f;
+        // 重置位置控制相关状态
+        if (is_distance_control_enabled) 
+		{
+            reset_distance_control();
+        }
     }
 		
 	SpeedPID.Actual=AveSpeed;

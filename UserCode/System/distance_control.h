@@ -20,7 +20,6 @@ typedef struct {
     float OutMin;
 } Distance_PID;
 
-// 声明为extern（不分配内存）
 extern Distance_PID distance_pid;
 extern uint8_t is_distance_control_enabled;
 extern uint8_t is_distance_reached;
@@ -38,7 +37,7 @@ void distance_pid_UpdatePID(void);
 void run_distance_start(float target_distance_cm);
 void run_distance_pid(void);
 
-// 新增：位置环串级控制函数
+//位置环串级控制函数
 void distance_position_control(float target_distance_cm);
 void distance_control_update(void);
 uint8_t is_distance_control_completed(void);

@@ -116,7 +116,7 @@ int Sensor_CheckTrack(void)
     } else {
         track_lost_counter = 0;
     }
-    if (track_lost_counter >= 50) { // 10ms检测一次在SensorPID里调用一次，所以0.5s没检测到线就是断线
+    if (track_lost_counter >= 50) {// 10ms检测一次在SensorPID里调用一次，所以0.5s没检测到线就是断线
         return 1;
     } else {
         return 0;

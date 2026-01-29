@@ -53,6 +53,8 @@ extern PID_t TurnPID;
 extern float SpeedLeft,SpeedRight;
 extern float AveSpeed,DifSpeed;
 extern boot_mode CarMode;
+extern uint8_t is_running;
+
 void Balance_PIDControl(void)
 {
 	//角度过大保护
@@ -70,16 +72,10 @@ void Balance_PIDControl(void)
 	AveSpeed=(SpeedLeft+SpeedRight)/2.f;
 	DifSpeed=SpeedLeft-SpeedRight;
 	
-	if (is_distance_control_enabled && !is_distance_reached){}
-	else 
-	{
-        // 位置控制未启用或已到达，速度目标为0
+	//只在非位置控制模式时设置速度目标为0
+	if ( !is_running )
+    {
         SpeedPID.Target = 0.0f;
-        // 重置位置控制相关状态
-        if (is_distance_control_enabled) 
-		{
-            reset_distance_control();
-        }
     }
 		
 	SpeedPID.Actual=AveSpeed;
@@ -89,7 +85,7 @@ void Balance_PIDControl(void)
 	PID_Update(&TurnPID);
 	DifPWM=TurnPID.Out;
 	
-	AvePWM=AnglePID.Out+SpeedPID.Out;
+	AvePWM = AnglePID.Out + SpeedPID.Out;
 		
 	LeftPWM=AvePWM+DifPWM/2;
 	RightPWM=AvePWM-DifPWM/2;

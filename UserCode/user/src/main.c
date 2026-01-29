@@ -103,21 +103,19 @@ int main (void)
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
 	
-	//重置位置控制
-	reset_distance_control();
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
     {	
 		CarMode=Menu_GetCurMode();
-//		if(key_get_state(KEY_3)) 
-//		{
-//			distance_position_control(10.0f);
-//		}
-//		if(key_get_state(KEY_4)) 
-//		{
-//			distance_position_control(-10.0f);
-//		}
+		if(key_get_state(KEY_3)) 
+		{
+			Start_Run_Distance(5);
+		}
+		if(key_get_state(KEY_4)) 
+		{
+			Start_Run_Distance(-5);
+		}
     }
     
 }
@@ -152,16 +150,30 @@ void pit_handler (void)
 		Count0 = 0;
 		
 		Get_Angle();
-		SpeedLeft = Get_Count1();
-		SpeedRight = Get_Count2();
+		// 修改编码器读取方式
+		static int16_t last_count1 = 0, last_count2 = 0;
+		int16_t current_count1 = Get_Count1();
+		int16_t current_count2 = Get_Count2();
+		
+		// 计算增量（考虑计数器溢出）
+		int16_t delta1 = current_count1 - last_count1;
+		int16_t delta2 = current_count2 - last_count2;
+		
+		// 更新速度（脉冲数/10ms）
+		SpeedLeft = delta1;
+		SpeedRight = delta2;
+		
+		// 保存当前计数用于下次计算
+		last_count1 = current_count1;
+		last_count2 = current_count2;
 		Encoder_Clear();
+		
 		if(CarMode!=IDLE)
 		{
-			// 更新位置环控制（串级控制的外环）
-            if (is_distance_control_enabled) 
+			if (Is_Running())
 			{
-                distance_control_update();
-            }
+				Update_Run_Distance();
+			}
 			
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
 			

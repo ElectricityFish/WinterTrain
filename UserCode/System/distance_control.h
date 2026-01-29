@@ -3,44 +3,34 @@
 
 #include "zf_common_headfile.h"
 
-typedef struct {
-    float Target;
-    float Actual;
-    float Out;
-    
-    float Kp;
-    float Ki;
-    float Kd;
-    
-    float Error0;
-    float Error1;
-    float ErrorInt;
-    
-    float OutMax;
-    float OutMin;
-} Distance_PID;
-
-extern Distance_PID distance_pid;
-extern uint8_t is_distance_control_enabled;
-extern uint8_t is_distance_reached;
-
 #define WHEEL_RADIUS_CM 3.4f
 #define ENCODER_RESOLUTION 44  // 编码器分辨率
 
-void Right_EncodeGet(void);
-void Left_EncodeGet(void);
-float Right_Distance(void);
-float Left_Distance(void);
-void distance_pid_UpdatePID(void);
+// 位置环PID结构体（串级PID的外环）
+typedef struct {
+    float target;           // 目标位置
+    float actual;           // 实际位置
+    float output;           // 输出（目标转向速度）
+    
+    float Kp;               // 比例系数
+    float Ki;               // 积分系数
+    float Kd;               // 微分系数
+    
+    float error;            // 当前误差
+    float last_error;       // 上次误差
+    float error_integral;   // 误差积分
+    float integral_max;     // 积分限幅
+    
+    float OutMax;           // 最大输出（最大前进速度）
+    float OutMin;           // 最小输出（最大后退速度）
+} Distance_Position_PID;
 
-// 位置环控制函数
-void run_distance_start(float target_distance_cm);
-void run_distance_pid(void);
+extern uint8_t is_running;
 
-//位置环串级控制函数
-void distance_position_control(float target_distance_cm);
-void distance_control_update(void);
-uint8_t is_distance_control_completed(void);
-void reset_distance_control(void);
+void Start_Run_Distance(float distance);      // 开始移动
+void Stop_Run_Distance(void);                 // 停止移动
+uint8_t Update_Run_Distance(void);            // 更新位置（在中断中调用）
+uint8_t Is_Running(void);                     //查是否正在移动
+float Get_Run_Distance_Error(void);           // 获取当前位置误差
 
 #endif

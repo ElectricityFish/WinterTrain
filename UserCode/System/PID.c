@@ -4,7 +4,6 @@
 #include "Motor.h"
 #include "Encoder.h"
 #include "Menu.h"
-#include "distance_control.h"
 #include "turn_control.h"
 #include <math.h>
 
@@ -55,6 +54,8 @@ extern PID_t TurnPID;
 extern float SpeedLeft,SpeedRight;
 extern float AveSpeed,DifSpeed;
 extern boot_mode CarMode;
+extern float gyro_yaw;
+
 void Balance_PIDControl(void)
 {
 	//角度过大保护
@@ -69,14 +70,15 @@ void Balance_PIDControl(void)
 	AnglePID.Actual = pitch;
 	PID_Update(&AnglePID);
 	
-	AveSpeed = (SpeedLeft + SpeedRight) / 2.0f;
-	DifSpeed = SpeedLeft - SpeedRight;
-	
-	// 重要：如果位置控制未启用，速度环目标应为0
-    // if (!is_distance_control_enabled && !is_distance_reached) 
-	// {
-    //     SpeedPID.Target = 0.0f;
-    // }
+	float speed_filter = 1.0; 
+    if(fabs(pitch) < 3.5f ) {
+    speed_filter = 0.1f;  // 静态强滤波
+    } else {
+    speed_filter = 0.5f; // 动态弱滤波
+    }
+    
+    AveSpeed = AveSpeed * (1-speed_filter) + (SpeedLeft+SpeedRight)/2.f * speed_filter;//低通滤波
+    DifSpeed=SpeedLeft-SpeedRight;
 		
 	SpeedPID.Actual = AveSpeed;
 	PID_Update(&SpeedPID);
@@ -104,7 +106,11 @@ void Balance_PIDControl(void)
 extern PID_t SensorPID;
 extern double yaw_offset;
 int sign = 1;
-double speed = 0.1f;
+double speed = 2.0f;
+
+int prev_track_state = 0;
+int cur_track_state = 0;	// 这么搞主要是为了检测跳变
+
 void Sensor_PIDControl(void)				//循迹PID函数，至于为啥不叫Trace，这是个历史遗留问题（哭）
 {	
 	if (!(CarMode == MODE_2 || CarMode == MODE_3)) return;
@@ -116,22 +122,33 @@ void Sensor_PIDControl(void)				//循迹PID函数，至于为啥不叫Trace，�
 		yaw_offset_counter = 0;
 	}
 
-	static int prev_track_state = 0;
-	static int cur_track_state = 0;	// 这么搞主要是为了检测跳变
 	prev_track_state = cur_track_state;
 	cur_track_state = Sensor_CheckTrack();
-
-	if (prev_track_state == 0 && cur_track_state == 1) { // 刚丢线
-		// yaw_offset = 0
-		if (CarMode == MODE_3) {
-			TurnPID.Target = 3.0f;
-		}
-	} else if (prev_track_state == 1 && cur_track_state == 1) { // 持续丢线
-		if (CarMode == MODE_3) {
-			TurnPID.Target -= 0.05f;
-		}
-	}
-
+	/*
+		我的转向角需要放在主函数的while里，所以把断线部分的
+		单独拉到出来
+	*/
+	
+//	if(CarMode == MODE_2){
+//		if (prev_track_state == 0 && cur_track_state == 1) { // 刚丢线
+//			// yaw_offset = 0
+//			gyro_yaw = 0;
+//			TurnPID.Target = 0.0f;
+//		} else if (prev_track_state == 1 && cur_track_state == 1) { // 持续丢线			
+//			gyro_yaw = 0;
+//			TurnPID.Target = 0.0f;
+//		}
+//		else{TurnPID.Out = 0.0f;}
+//	}
+	
+//	if(CarMode == MODE_3){
+//		if (prev_track_state == 0 && cur_track_state == 1) { // 刚丢线
+//			// yaw_offset = 0
+//			Start_Angle_Turn(37);
+//			TurnPID.Target = 0.0f;
+//		} else if (prev_track_state == 1 && cur_track_state == 1) {		}
+//		else{TurnPID.Out = 0.0f;}
+//	}
 	SensorPID.Actual = (float)Sensor_ComplementaryFilteredError(0.9f);
 
 	PID_Update( &SensorPID );
@@ -140,4 +157,3 @@ void Sensor_PIDControl(void)				//循迹PID函数，至于为啥不叫Trace，�
 	SpeedPID.Target = speed;		// 这个速度倒时候看需求
 	
 }
-

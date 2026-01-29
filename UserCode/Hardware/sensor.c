@@ -18,7 +18,7 @@ double L3_WEIGHT = 5.0f;           // 次外面灯的权重
 double L2_WEIGHT = 3.0f;           // 次内部灯的权重
 double L1_WEIGHT = 1.0f;           // 内部灯的权重
 
-int track_lost_counter;
+int track_lost_counter = 0;
 double yaw_offset;
 
 /* ==============================================================================================
@@ -112,12 +112,12 @@ extern float yaw;
  */
 int Sensor_CheckTrack(void) 
 {
-    if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4 && fabs(yaw - 180) < 10.0f) {
-        track_lost_counter++;
+    if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4) {
+        track_lost_counter ++;
     } else {
         track_lost_counter = 0;
     }
-    if (track_lost_counter >= 20) { // 10ms检测一次在SensorPID里调用一次，所以0.4s没检测到线就是断线
+    if (track_lost_counter >= 10) { // 10ms检测一次在SensorPID里调用一次，所以0.4s没检测到线就是断线
         yaw_offset = 0;
         track_lost_counter = 0;
         return 1;

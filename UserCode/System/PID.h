@@ -30,6 +30,8 @@ typedef struct {
 	float OutOffset;	//输出偏移值
 } PID_t;	//PID结构体
 
+extern int prev_track_state;
+extern int cur_track_state;
 
 void PID_Update(PID_t *p);					//一般PID函数
 void Balance_PIDControl(void);				//角度环PID函数

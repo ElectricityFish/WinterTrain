@@ -32,6 +32,13 @@ float SpeedLeft,SpeedRight;
 float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
+int16_t turn_flag = 0;
+
+//循迹需要
+extern double speed;
+extern int prev_track_state;
+extern int cur_track_state;
+
 PID_t AnglePID={
 	.Kp=540.0,
 	.Ki=0.0,
@@ -68,8 +75,8 @@ PID_t TurnPID={
 
 PID_t SensorPID = {
     .Kp         = 1.0f,
-    .Ki         = 1.0f,
-    .Kd         = 1.0f,
+    .Ki         = 0.0f,
+    .Kd         = 0.8f,
 
 	.Target     = 0.0f,
     .OutMax     = 10000.0f,
@@ -86,7 +93,7 @@ void Menu_UpDate(void); //封装后的菜单更新函数
 /* ==============================================================================================
                                         主函数
    ============================================================================================== */
-extern double speed;
+
 int main (void)
 {
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -117,8 +124,39 @@ int main (void)
 		if(key_get_state(KEY_2)) 
 		{
 			gyro_yaw = 0;
-			speed = 1.5f;
+			speed = 2.5f;
 			yaw_offset = 0;
+		}
+		
+		if(CarMode == MODE_2)
+		{
+			if (prev_track_state == 0 && cur_track_state == 1) { // 刚丢线
+				// yaw_offset = 0
+				gyro_yaw = 0;
+				TurnPID.Target = 0.0f;
+			} else if (prev_track_state == 1 && cur_track_state == 1) { // 持续丢线			
+				gyro_yaw = 0;
+				TurnPID.Target = 0.0f;
+			}
+			else{TurnPID.Out = 0.0f;}
+		}
+		
+		if(CarMode == MODE_3)
+		{
+			if (prev_track_state == 0 && cur_track_state == 1) // 刚丢线
+			{
+				turn_flag = !turn_flag;
+				if(turn_flag == 1)
+				{
+					Start_Angle_Turn(50);
+				}
+				else if(turn_flag == 0)
+				{
+					Start_Angle_Turn(-50);
+				}
+				TurnPID.Target = 0.0f;
+			}
+			else{TurnPID.Out = 0.0f;}
 		}
     }
     
@@ -166,12 +204,6 @@ void pit_handler (void)
 		
 		if(CarMode!=IDLE)
 		{
-			// 更新位置环控制（串级控制的外环）
-            // if (is_distance_control_enabled) 
-			// {
-            //     distance_control_update();
-            // }
-			
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
 			
 			if (Is_Angle_Turning())

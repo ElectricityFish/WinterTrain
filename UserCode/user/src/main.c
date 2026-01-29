@@ -108,14 +108,6 @@ int main (void)
     while(1)
     {	
 		CarMode=Menu_GetCurMode();
-		if(key_get_state(KEY_3)) 
-		{
-			Start_Run_Distance(5);
-		}
-		if(key_get_state(KEY_4)) 
-		{
-			Start_Run_Distance(-5);
-		}
     }
     
 }
@@ -169,12 +161,7 @@ void pit_handler (void)
 		Encoder_Clear();
 		
 		if(CarMode!=IDLE)
-		{
-			if (Is_Running())
-			{
-				Update_Run_Distance();
-			}
-			
+		{		
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
 			
 			if (Is_Angle_Turning())

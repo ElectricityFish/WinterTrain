@@ -21,9 +21,11 @@ int16 AX, AY, AZ;
 float Offset;
 float yaw, pitch, roll;
 KalmanFilter KF;
+extern double yaw_offset;
 ///////////////////////////////////////////////////////////////////////////////////////////////// 小车模式
 
 boot_mode CarMode = IDLE;
+boot_mode Prev_CarMode = IDLE;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////// 小车控制
 float SpeedLeft,SpeedRight;
@@ -43,8 +45,8 @@ PID_t AnglePID={
 };
 
 PID_t SpeedPID={	
-	.Kp=-750.0,
-	.Ki=-3.5,
+	.Kp=-800,
+	.Ki=-3.0,
 	.Kd=0.0,
 	
 	.Target=0.0f,
@@ -54,9 +56,9 @@ PID_t SpeedPID={
 };
 
 PID_t TurnPID={
-	.Kp=-2000.0,
-	.Ki=0.0,
-	.Kd=0,
+	.Kp=-2500.0,
+	.Ki=0.0f,
+	.Kd=0.0,
 	
 	.Target=0.0f,
 	.OutMax=5000.0,
@@ -84,6 +86,7 @@ void Menu_UpDate(void); //封装后的菜单更新函数
 /* ==============================================================================================
                                         主函数
    ============================================================================================== */
+extern double speed;
 int main (void)
 {
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -109,20 +112,17 @@ int main (void)
 	
     while(1)
     {	
-		CarMode=Menu_GetCurMode();
-		if(key_get_state(KEY_3)) 
+		Prev_CarMode = CarMode;
+		CarMode = Menu_GetCurMode();
+		if(key_get_state(KEY_2)) 
 		{
-			distance_position_control(10.0f);
-		}
-		if(key_get_state(KEY_4)) 
-		{
-			distance_position_control(-10.0f);
+			gyro_yaw = 0;
+			speed = 1.5f;
+			yaw_offset = 0;
 		}
     }
     
 }
-
-
 
 /**
  * @brief 封装后的中断函数,每1ms在isr的中断函数里调用一次
@@ -135,9 +135,17 @@ void pit_handler (void)
 
 	static uint8_t Count0=0;
 	static uint8_t Count1=5; //初始值不同进行错峰更新
+	static uint8_t Count2=2;
 	Count0++;
 	Count1++;
+	Count2++;
 	
+	if (CarMode == MODE_2) {
+		SpeedPID.Ki = 0.0f;
+	} else {
+		SpeedPID.Ki = -3.0f;
+	}
+
 	
 	if(Count1>=10)//每10ms进行一次按钮检测，和菜单更新，并从菜单获取最新参数
 	{
@@ -155,13 +163,14 @@ void pit_handler (void)
 		SpeedLeft = Get_Count1();
 		SpeedRight = Get_Count2();
 		Encoder_Clear();
+		
 		if(CarMode!=IDLE)
 		{
 			// 更新位置环控制（串级控制的外环）
-            if (is_distance_control_enabled) 
-			{
-                distance_control_update();
-            }
+            // if (is_distance_control_enabled) 
+			// {
+            //     distance_control_update();
+            // }
 			
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
 			
@@ -174,7 +183,15 @@ void pit_handler (void)
 		{
 			Motor_SetPWM(1,0);
 			Motor_SetPWM(2,0);
-			SpeedPID.ErrorInt=0;
+			SpeedPID.ErrorInt = 0;
+			SensorPID.ErrorInt = 0;
+		}
+	}
+///////////////////////////////////////////////////////////////////////////////////////////////// 循迹
+	if (Count2 > 10) {
+		Count2 = 0;
+		if (CarMode == MODE_2 || CarMode == MODE_3){
+			Sensor_PIDControl();
 		}
 	}
 	

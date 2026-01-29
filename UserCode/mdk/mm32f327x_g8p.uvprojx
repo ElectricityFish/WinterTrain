@@ -1313,16 +1313,6 @@
               <FilePath>..\System\turn_control.h</FilePath>
             </File>
             <File>
-              <FileName>distance_control.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\System\distance_control.c</FilePath>
-            </File>
-            <File>
-              <FileName>distance_control.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\System\distance_control.h</FilePath>
-            </File>
-            <File>
               <FileName>Inertial_Navigation.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\System\Inertial_Navigation.c</FilePath>

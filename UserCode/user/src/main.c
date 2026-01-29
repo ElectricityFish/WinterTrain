@@ -8,7 +8,6 @@
 #include "PID.h"
 #include "diskio.h"
 #include "turn_control.h"
-#include "distance_control.h"
 
 /* ==============================================================================================
                                         全局变量声明
@@ -21,6 +20,8 @@ int16 AX, AY, AZ;
 float Offset;
 float yaw, pitch, roll;
 KalmanFilter KF;
+volatile uint32_t system_time_ms = 0;
+
 extern double yaw_offset;
 ///////////////////////////////////////////////////////////////////////////////////////////////// 小车模式
 
@@ -113,8 +114,6 @@ int main (void)
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
 	
-	//重置位置控制
-	reset_distance_control();
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
@@ -177,6 +176,8 @@ void pit_handler (void)
 	Count0++;
 	Count1++;
 	Count2++;
+	
+	system_time_ms++;  // 增加系统时间
 	
 	if (CarMode == MODE_2) {
 		SpeedPID.Ki = 0.0f;
@@ -268,4 +269,3 @@ void Menu_UpDate(void)
 	SensorPID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
 	   
 }
-

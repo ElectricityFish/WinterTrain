@@ -111,49 +111,32 @@ double speed = 2.0f;
 int prev_track_state = 0;
 int cur_track_state = 0;	// 这么搞主要是为了检测跳变
 
-void Sensor_PIDControl(void)				//循迹PID函数，至于为啥不叫Trace，这是个历史遗留问题（哭）
+void Sensor_PIDControl(void)
 {	
-	if (!(CarMode == MODE_2 || CarMode == MODE_3)) return;
+    if (!(CarMode == MODE_2 || CarMode == MODE_3)) return;
 
-	static int yaw_offset_counter = 0;
-	yaw_offset_counter++;
-	if (yaw_offset_counter > 100) {
-		yaw_offset = Sensor_GetSensorError();
-		yaw_offset_counter = 0;
-	}
+    static int yaw_offset_counter = 0;
+    yaw_offset_counter++;
+    if (yaw_offset_counter > 100) {
+        yaw_offset = Sensor_GetSensorError();
+        yaw_offset_counter = 0;
+    }
 
-	prev_track_state = cur_track_state;
-	cur_track_state = Sensor_CheckTrack();
-	/*
-		我的转向角需要放在主函数的while里，所以把断线部分的
-		单独拉到出来
-	*/
-	
-//	if(CarMode == MODE_2){
-//		if (prev_track_state == 0 && cur_track_state == 1) { // 刚丢线
-//			// yaw_offset = 0
-//			gyro_yaw = 0;
-//			TurnPID.Target = 0.0f;
-//		} else if (prev_track_state == 1 && cur_track_state == 1) { // 持续丢线			
-//			gyro_yaw = 0;
-//			TurnPID.Target = 0.0f;
-//		}
-//		else{TurnPID.Out = 0.0f;}
-//	}
-	
-//	if(CarMode == MODE_3){
-//		if (prev_track_state == 0 && cur_track_state == 1) { // 刚丢线
-//			// yaw_offset = 0
-//			Start_Angle_Turn(37);
-//			TurnPID.Target = 0.0f;
-//		} else if (prev_track_state == 1 && cur_track_state == 1) {		}
-//		else{TurnPID.Out = 0.0f;}
-//	}
-	SensorPID.Actual = (float)Sensor_ComplementaryFilteredError(0.9f);
-
-	PID_Update( &SensorPID );
-
-	TurnPID.Target = SensorPID.Out;
-	SpeedPID.Target = speed;		// 这个速度倒时候看需求
-	
+    // 更新断线状态
+    cur_track_state = Sensor_CheckTrack();
+    
+    // 只在正常状态下进行循迹PID计算
+    if (cur_track_state == 0) {
+        SensorPID.Actual = (float)Sensor_ComplementaryFilteredError(0.9f);
+        PID_Update(&SensorPID);
+        
+        TurnPID.Target = SensorPID.Out;
+        SpeedPID.Target = speed;
+    }
+    // 断线状态下，保持上一次的PID输出或清零
+    else {
+        // 可以选择清零或者保持
+//        SensorPID.Out = 0;
+//        TurnPID.Target = 0;
+    }
 }

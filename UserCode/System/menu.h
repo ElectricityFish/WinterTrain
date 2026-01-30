@@ -127,5 +127,7 @@ double                  Menu_GetValue                   (interface_id ID, int op
 void                    Menu_SetValue                   (interface_id ID, int option_index, int value);
 boot_mode               Menu_GetCurMode                 (void);
 void                    Menu_JustRefreshValue           (void);
+void Menu_SetRunningMode(boot_mode Mode);
 
 #endif
+

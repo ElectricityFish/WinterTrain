@@ -31,7 +31,7 @@ typedef struct {
 } PID_t;	//PID结构体
 
 extern int prev_track_state;
-extern int cur_track_state;
+extern int cur_track_state;    // 0-正常, 1-刚断线, 2-持续断线
 
 void PID_Update(PID_t *p);					//一般PID函数
 void Balance_PIDControl(void);				//角度环PID函数

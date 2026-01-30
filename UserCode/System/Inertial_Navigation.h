@@ -8,7 +8,7 @@
    ============================================================================================== */
 
 // Flash存储配置
-#define INERTIAL_NAV_FLASH_SECTOR         120     // 惯导数据存储扇区
+#define INERTIAL_NAV_FLASH_SECTOR         100     // 惯导数据存储扇区
 #define INERTIAL_NAV_FLASH_PAGE           0       // 惯导数据存储页
 #define INERTIAL_NAV_MAX_POINTS           512     // 最大记录点数（每点8字节，一页512个点）
 #define INERTIAL_NAV_RECORD_INTERVAL_MS   20      // 记录间隔20ms（50Hz采样）

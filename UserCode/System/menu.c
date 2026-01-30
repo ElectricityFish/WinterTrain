@@ -639,3 +639,7 @@ void Menu_SetValue(interface_id ID, int option_index, int value){
 boot_mode Menu_GetCurMode(void){
     return running_mode;
 }
+
+void Menu_SetRunningMode(boot_mode Mode) {
+    running_mode = Mode;
+}

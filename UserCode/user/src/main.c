@@ -34,6 +34,7 @@ float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 int16_t turn_flag = 0;
+int16_t stop_flag = 0;
 
 //循迹需要
 extern double speed;
@@ -41,9 +42,9 @@ extern int prev_track_state;
 extern int cur_track_state;
 
 PID_t AnglePID={
-	.Kp=540.0,
+	.Kp=660.0,
 	.Ki=0.0,
-	.Kd=2000.0,
+	.Kd=1700.0,
 	
 	.OutOffset=0.0,	// 输出偏移值,让电机动起来的最小PWM
 	.Target = 0.0f,
@@ -53,8 +54,8 @@ PID_t AnglePID={
 };
 
 PID_t SpeedPID={	
-	.Kp=-800,
-	.Ki=-3.0,
+	.Kp=-1200,
+	.Ki=-1200.0 / 200.0,
 	.Kd=0.0,
 	
 	.Target=0.0f,
@@ -75,9 +76,9 @@ PID_t TurnPID={
 };
 
 PID_t SensorPID = {
-    .Kp         = 1.0f,
+    .Kp         = 8.5f,
     .Ki         = 0.0f,
-    .Kd         = 0.8f,
+    .Kd         = 7.5f,
 
 	.Target     = 0.0f,
     .OutMax     = 10000.0f,
@@ -117,48 +118,80 @@ int main (void)
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
-    {	
+	{	
 		Prev_CarMode = CarMode;
 		CarMode = Menu_GetCurMode();
 		if(key_get_state(KEY_2)) 
 		{
 			gyro_yaw = 0;
-			speed = 2.5f;
+			speed = 2.0f;
 			yaw_offset = 0;
 		}
 		
-		if(CarMode == MODE_2)
+		if (CarMode == MODE_2 || CarMode == MODE_3)
 		{
-			if (prev_track_state == 0 && cur_track_state == 1) { // 刚丢线
-				// yaw_offset = 0
-				gyro_yaw = 0;
-				TurnPID.Target = 0.0f;
-			} else if (prev_track_state == 1 && cur_track_state == 1) { // 持续丢线			
-				gyro_yaw = 0;
-				TurnPID.Target = 0.0f;
-			}
-			else{TurnPID.Out = 0.0f;}
-		}
-		
-		if(CarMode == MODE_3)
-		{
-			if (prev_track_state == 0 && cur_track_state == 1) // 刚丢线
+			Sensor_PIDControl();
+			
+			if(CarMode == MODE_2)
 			{
-				turn_flag = !turn_flag;
-				if(turn_flag == 1)
+				// 刚检测到断线
+				if (cur_track_state == 1) 
 				{
-					Start_Angle_Turn(50);
+					stop_flag ++;
+					gyro_yaw = 0.0f;
+					TurnPID.Target = 0.0f;
+					SensorPID.Ki = 0.0f;
+					
+					if(stop_flag >= 2)
+					{
+						speed = 0;
+//						SpeedPID.Target = 0.0f;
+//						Menu_SetRunningMode(MODE_1);
+					}
 				}
-				else if(turn_flag == 0)
+				// 持续断线状态
+				else if (cur_track_state == 2) 
 				{
-					Start_Angle_Turn(-50);
+					TurnPID.Target = 0.0f;
+					SensorPID.Ki = 0.0f;
 				}
-				TurnPID.Target = 0.0f;
+				// 正常状态
+				else
+				{
+					TurnPID.Target = SensorPID.Out;
+					SensorPID.Ki = 0.0f;
+				}
 			}
-			else{TurnPID.Out = 0.0f;}
+			
+			if(CarMode == MODE_3)
+			{
+				// 刚检测到断线，执行一次转向
+				if (cur_track_state == 1) 
+				{
+					turn_flag = !turn_flag;
+					if(turn_flag == 1)
+					{
+						Start_Angle_Turn(70);
+					}
+					else
+					{
+						Start_Angle_Turn(-70);
+					}
+					TurnPID.Target = 0.0f;
+				}
+				// 持续断线状态，保持之前的状态，不重复执行
+				else if (cur_track_state == 2)
+				{
+					// 保持当前转向，不做额外处理
+				}
+				// 正常状态
+				else
+				{
+					TurnPID.Out = 0.0f;
+				}
+			}
 		}
-    }
-    
+	}
 }
 
 /**
@@ -172,17 +205,17 @@ void pit_handler (void)
 
 	static uint8_t Count0=0;
 	static uint8_t Count1=5; //初始值不同进行错峰更新
-	static uint8_t Count2=2;
+//	static uint8_t Count2=2;
 	Count0++;
 	Count1++;
-	Count2++;
+//	Count2++;
 	
 	system_time_ms++;  // 增加系统时间
 	
 	if (CarMode == MODE_2) {
 		SpeedPID.Ki = 0.0f;
 	} else {
-		SpeedPID.Ki = -3.0f;
+		SpeedPID.Ki = -1200.0 / 200.0f;
 	}
 
 	
@@ -221,12 +254,12 @@ void pit_handler (void)
 		}
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////// 循迹
-	if (Count2 > 10) {
-		Count2 = 0;
-		if (CarMode == MODE_2 || CarMode == MODE_3){
-			Sensor_PIDControl();
-		}
-	}
+//	if (Count2 > 10) {
+//		Count2 = 0;
+//		if (CarMode == MODE_2 || CarMode == MODE_3){
+//			Sensor_PIDControl();
+//		}
+//	}
 	
 }
 
@@ -264,8 +297,8 @@ void Menu_UpDate(void)
 //	TurnPID.Ki = Menu_GetValue(TURNING_PID_MENU, 1);
 //	TurnPID.Kd = Menu_GetValue(TURNING_PID_MENU, 2);
 
-	SensorPID.Kp = Menu_GetValue(SENSOR_PID_MENU, 0);
-	SensorPID.Ki = Menu_GetValue(SENSOR_PID_MENU, 1);
-	SensorPID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
+//	SensorPID.Kp = Menu_GetValue(SENSOR_PID_MENU, 0);
+//	SensorPID.Ki = Menu_GetValue(SENSOR_PID_MENU, 1);
+//	SensorPID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
 	   
 }

@@ -27,6 +27,6 @@ void Sensor_Init            (void);
 double Sensor_GetSensorError      (void);
 double Sensor_GetYawError      (void);
 double Sensor_ComplementaryFilteredError (float ALPHA);
-int Sensor_CheckTrack       (void); 
+int Sensor_CheckTrack(void);  // 返回值: 0-正常, 1-刚断线, 2-持续断线 
 
 #endif

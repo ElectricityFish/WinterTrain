@@ -112,16 +112,29 @@ extern float yaw;
  */
 int Sensor_CheckTrack(void) 
 {
+    static int lost_flag = 0;  // 断线标志
+    static int lost_counter = 0;  // 断线计数器
+    
     if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4) {
-        track_lost_counter ++;
+        lost_counter++;
     } else {
-        track_lost_counter = 0;
+        // 重新检测到线，重置状态
+        lost_counter = 0;
+        lost_flag = 0;
     }
-    if (track_lost_counter >= 10) { // 10ms检测一次在SensorPID里调用一次，所以0.4s没检测到线就是断线
-        yaw_offset = 0;
-        track_lost_counter = 0;
-        return 1;
+    
+    // 连续10次（100ms）检测到全黑
+    if (lost_counter >= 10) {
+        if (lost_flag == 0) {
+            // 第一次检测到断线
+            lost_flag = 1;
+            yaw_offset = 0;
+            return 1;  // 返回1表示刚断线
+        } else {
+            return 2;  // 返回2表示持续断线
+        }
     } else {
-        return 0;
+        return 0;  // 正常
     }
 }
+

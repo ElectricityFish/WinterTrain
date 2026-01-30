@@ -125,8 +125,8 @@ int Sensor_CheckTrack(void)
         lost_flag = 0;
     }
     
-    // 连续10次（100ms）检测到全白
-    if (lost_counter >= 10) {
+    // 连续2次（20ms）检测到全白
+    if (lost_counter >= 2) {
         if (lost_flag == 0) 
 		{
             // 第一次检测到断线

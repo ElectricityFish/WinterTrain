@@ -9,6 +9,7 @@
 #include "diskio.h"
 #include "turn_control.h"
 #include "Inertial_Navigation.h"
+#include "task3.h"
 
 /* ==============================================================================================
                                         全局变量声明
@@ -76,9 +77,9 @@ PID_t TurnPID={
 };
 
 PID_t SensorPID = {
-    .Kp         = 8.5f,
+    .Kp         = 9.5f,
     .Ki         = 0.0f,
-    .Kd         = 7.5f,
+    .Kd         = 6.5f,
 
 	.Target     = 0.0f,
     .OutMax     = 10000.0f,
@@ -115,6 +116,8 @@ int main (void)
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
 	
+	Task3_Init();                                           // 任务3初始化，采用状态机单独封装
+	
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
@@ -124,7 +127,7 @@ int main (void)
 		if(key_get_state(KEY_2)) 
 		{
 			gyro_yaw = 0;
-			speed = 2.0f;
+			speed = 1.5f;
 			yaw_offset = 0;
 		}
 		
@@ -143,10 +146,11 @@ void pit_handler (void)
 	static uint8_t Count0=0;
 	static uint8_t Count1=5; //初始值不同进行错峰更新
 	static uint8_t Count2=2;
+	static uint8_t Count3=8;
 	Count0++;
 	Count1++;
 	Count2++;
-	
+	Count3++;
 	system_time_ms++;  // 增加系统时间
 	
 	if (CarMode == MODE_2) {
@@ -190,7 +194,7 @@ void pit_handler (void)
 			SensorPID.ErrorInt = 0;
 		}
 	}
-///////////////////////////////////////////////////////////////////////////////////////////////// 循迹
+/**********************************任务2*****************************************/
 	if(Count2 >= 15)
 	{
 		Count2 = 0;
@@ -227,6 +231,19 @@ void pit_handler (void)
 		}
 		
 	}
+/**********************************任务3*****************************************/
+	if(Count3 >= 15)
+	{
+		Count3 = 0;
+		Sensor_PIDControl();
+		
+		// 使用封装后的任务3函数
+		if(CarMode == MODE_3)
+		{
+			Task3_Update(cur_track_state, CarMode);
+		}
+	}
+/**********************************任务4*****************************************/
 	
 }
 

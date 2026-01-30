@@ -8,6 +8,7 @@
 #include "PID.h"
 #include "diskio.h"
 #include "turn_control.h"
+#include "Inertial_Navigation.h"
 
 /* ==============================================================================================
                                         全局变量声明
@@ -38,7 +39,6 @@ int16_t stop_flag = 0;
 
 //循迹需要
 extern double speed;
-extern int prev_track_state;
 extern int cur_track_state;
 
 PID_t AnglePID={
@@ -128,69 +128,6 @@ int main (void)
 			yaw_offset = 0;
 		}
 		
-		if (CarMode == MODE_2 || CarMode == MODE_3)
-		{
-			Sensor_PIDControl();
-			
-			if(CarMode == MODE_2)
-			{
-				// 刚检测到断线
-				if (cur_track_state == 1) 
-				{
-					stop_flag ++;
-					gyro_yaw = 0.0f;
-					TurnPID.Target = 0.0f;
-					SensorPID.Ki = 0.0f;
-					
-					if(stop_flag >= 2)
-					{
-						speed = 0;
-//						SpeedPID.Target = 0.0f;
-//						Menu_SetRunningMode(MODE_1);
-					}
-				}
-				// 持续断线状态
-				else if (cur_track_state == 2) 
-				{
-					TurnPID.Target = 0.0f;
-					SensorPID.Ki = 0.0f;
-				}
-				// 正常状态
-				else
-				{
-					TurnPID.Target = SensorPID.Out;
-					SensorPID.Ki = 0.0f;
-				}
-			}
-			
-			if(CarMode == MODE_3)
-			{
-				// 刚检测到断线，执行一次转向
-				if (cur_track_state == 1) 
-				{
-					turn_flag = !turn_flag;
-					if(turn_flag == 1)
-					{
-						Start_Angle_Turn(70);
-					}
-					else
-					{
-						Start_Angle_Turn(-70);
-					}
-					TurnPID.Target = 0.0f;
-				}
-				// 持续断线状态，保持之前的状态，不重复执行
-				else if (cur_track_state == 2)
-				{
-					// 保持当前转向，不做额外处理
-				}
-				// 正常状态
-				else
-				{
-					TurnPID.Out = 0.0f;
-				}
-			}
-		}
 	}
 }
 
@@ -205,10 +142,10 @@ void pit_handler (void)
 
 	static uint8_t Count0=0;
 	static uint8_t Count1=5; //初始值不同进行错峰更新
-//	static uint8_t Count2=2;
+	static uint8_t Count2=2;
 	Count0++;
 	Count1++;
-//	Count2++;
+	Count2++;
 	
 	system_time_ms++;  // 增加系统时间
 	
@@ -254,12 +191,42 @@ void pit_handler (void)
 		}
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////// 循迹
-//	if (Count2 > 10) {
-//		Count2 = 0;
-//		if (CarMode == MODE_2 || CarMode == MODE_3){
-//			Sensor_PIDControl();
-//		}
-//	}
+	if(Count2 >= 15)
+	{
+		Count2 = 0;
+		Sensor_PIDControl();
+		
+		if(CarMode == MODE_2)
+		{
+			// 刚检测到断线
+			if (cur_track_state == 1) 
+			{
+				stop_flag ++;
+				gyro_yaw = 0.0f;
+				TurnPID.Target = 0.0f;
+				SensorPID.Ki = 0.0f;
+				
+				if(stop_flag == 3)
+				{
+					SpeedPID.Target  = 0.0f;
+					Menu_SetRunningMode(MODE_1);
+				}
+			}
+			// 持续断线状态
+			else if (cur_track_state == 2) 
+			{
+				TurnPID.Target = 0.0f;
+				SensorPID.Ki = 0.0f;
+			}
+			// 正常状态
+			else
+			{
+				TurnPID.Target = SensorPID.Out;
+				SensorPID.Ki = 0.0f;
+			}
+		}
+		
+	}
 	
 }
 

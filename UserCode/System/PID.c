@@ -108,7 +108,6 @@ extern double yaw_offset;
 int sign = 1;
 double speed = 2.0f;
 
-int prev_track_state = 0;
 int cur_track_state = 0;	// 这么搞主要是为了检测跳变
 
 void Sensor_PIDControl(void)

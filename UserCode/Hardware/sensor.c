@@ -117,20 +117,25 @@ int Sensor_CheckTrack(void)
     
     if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4) {
         lost_counter++;
-    } else {
+    } 
+	else 
+	{
         // 重新检测到线，重置状态
         lost_counter = 0;
         lost_flag = 0;
     }
     
-    // 连续10次（100ms）检测到全黑
+    // 连续10次（100ms）检测到全白
     if (lost_counter >= 10) {
-        if (lost_flag == 0) {
+        if (lost_flag == 0) 
+		{
             // 第一次检测到断线
             lost_flag = 1;
             yaw_offset = 0;
             return 1;  // 返回1表示刚断线
-        } else {
+        } 
+		else 
+		{
             return 2;  // 返回2表示持续断线
         }
     } else {

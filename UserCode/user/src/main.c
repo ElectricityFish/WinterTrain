@@ -9,6 +9,7 @@
 #include "diskio.h"
 #include "turn_control.h"
 #include "Inertial_Navigation.h"
+#include "BlueSerial.h"
 
 /* ==============================================================================================
                                         全局变量声明
@@ -115,6 +116,8 @@ int main (void)
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
 	
+	BludeSerial_Init();										//蓝牙初始化
+	
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
@@ -124,8 +127,13 @@ int main (void)
 		if(key_get_state(KEY_2)) 
 		{
 			gyro_yaw = 0;
-			speed = 2.0f;
+			speed = 3.0f;
 			yaw_offset = 0;
+		}
+		
+		if(CarMode==MODE_5)
+		{
+			BlueSerial_Control(&SpeedPID.Target,&TurnPID.Target);
 		}
 		
 	}
@@ -190,7 +198,7 @@ void pit_handler (void)
 			SensorPID.ErrorInt = 0;
 		}
 	}
-///////////////////////////////////////////////////////////////////////////////////////////////// 循迹
+///////////////////////////////////////////////////////////////////////////////////////////////// 任务二
 	if(Count2 >= 15)
 	{
 		Count2 = 0;

@@ -41,6 +41,8 @@ int16_t stop_flag = 0;
 //循迹需要
 extern double speed;
 extern int cur_track_state;
+uint8_t previouscur_track_state;	//记录上一时刻的循迹状态，用于任务二的声光提示
+uint8_t onLinePromoptFlag=0;			//用于任务二的声光提示
 
 PID_t AnglePID={
 	.Kp=660.0,
@@ -204,8 +206,10 @@ void pit_handler (void)
 	if(Count2 >= 15)
 	{
 		Count2 = 0;
+		previouscur_track_state=cur_track_state;
 		Sensor_PIDControl();
 		TaskTwoPromopt();
+		
 		
 		if(CarMode == MODE_2)
 		{
@@ -235,6 +239,9 @@ void pit_handler (void)
 				TurnPID.Target = SensorPID.Out;
 				SensorPID.Ki = 0.0f;
 			}
+			
+			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
+				
 		}
 		
 	}
@@ -286,26 +293,13 @@ void TaskTwoPromopt(void)								//任务二提示函数
 	static uint8_t PromoptFlag=0;
 	static uint8_t PromoptCount=0;
 	
-	if(stop_flag==0&&PromoptFlag==0)
-		{
-			PromoptCount=20;
-			PromoptFlag=1;
-		}
-		if(stop_flag==1&&PromoptFlag==1)
-		{
-			PromoptCount=20;
-			PromoptFlag=2;
-		}
-		if(stop_flag==2&&PromoptFlag==2)
-		{
-			PromoptCount=20;
-			PromoptFlag=3;
-		}
-		if(stop_flag==3&&PromoptFlag==3)
-		{
-			PromoptCount=20;
-			PromoptFlag=4;
-		}
+	if(onLinePromoptFlag==1)
+	{
+		PromoptCount=20;
+		onLinePromoptFlag=0;
+	}
+	
+
 		
 		if(PromoptCount>0)
 		{

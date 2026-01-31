@@ -9,6 +9,7 @@
 #include "diskio.h"
 #include "turn_control.h"
 #include "Inertial_Navigation.h"
+#include "BlueSerial.h"
 
 /* ==============================================================================================
                                         全局变量声明
@@ -22,8 +23,6 @@ float Offset;
 float yaw, pitch, roll;
 KalmanFilter KF;
 volatile uint32_t system_time_ms = 0;
-
-extern double yaw_offset;
 ///////////////////////////////////////////////////////////////////////////////////////////////// 小车模式
 
 boot_mode CarMode = IDLE;
@@ -35,11 +34,14 @@ float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 int16_t turn_flag = 0;
-int16_t stop_flag = 0;
+int16_t task_two_stop_flag = 0;
 
-//循迹需要
+
+// 循迹需要
 extern double speed;
 extern int cur_track_state;
+uint8_t previouscur_track_state;	//记录上一时刻的循迹状态，用于任务二的声光提示
+uint8_t onLinePromoptFlag = 0;			//用于任务二的声光提示
 
 PID_t AnglePID={
 	.Kp=660.0,
@@ -91,6 +93,7 @@ PID_t SensorPID = {
    ============================================================================================== */
 
 void Menu_UpDate(void); //封装后的菜单更新函数
+void TaskTwoPromopt(void);	
 
 /* ==============================================================================================
                                         主函数
@@ -114,7 +117,7 @@ int main (void)
     key_init(10);											// 按键初始化
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
-	
+	BludeSerial_Init();
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
@@ -125,7 +128,8 @@ int main (void)
 		{
 			gyro_yaw = 0;
 			speed = 2.0f;
-			yaw_offset = 0;
+			task_two_stop_flag = 0;
+			StopPromopt();
 		}
 		
 	}
@@ -194,36 +198,47 @@ void pit_handler (void)
 	if(Count2 >= 15)
 	{
 		Count2 = 0;
-		Sensor_PIDControl();
 		
 		if(CarMode == MODE_2)
 		{
+			previouscur_track_state = cur_track_state;
+			Sensor_PIDControl();
+			TaskTwoPromopt();
+			
 			// 刚检测到断线
 			if (cur_track_state == 1) 
 			{
-				stop_flag ++;
-				gyro_yaw = 0.0f;
-				TurnPID.Target = 0.0f;
-				SensorPID.Ki = 0.0f;
-				
-				if(stop_flag == 3)
-				{
-					SpeedPID.Target  = 0.0f;
-					Menu_SetRunningMode(MODE_1);
-				}
+				// TurnPID.Target = 0.0f;
+			
 			}
 			// 持续断线状态
 			else if (cur_track_state == 2) 
 			{
-				TurnPID.Target = 0.0f;
-				SensorPID.Ki = 0.0f;
+				// TurnPID.Target = 0.0f;
 			}
 			// 正常状态
 			else
 			{
+				if (previouscur_track_state == 2) {
+					gyro_yaw = 0;
+				}
 				TurnPID.Target = SensorPID.Out;
 				SensorPID.Ki = 0.0f;
 			}
+			
+			if(previouscur_track_state != cur_track_state){
+				onLinePromoptFlag = 1;
+			} 
+			
+		}
+		if(task_two_stop_flag == 4) // you need to rest
+		{
+			SpeedPID.Target  = 0.0f;
+			Menu_SetRunningMode(MODE_1);
+			CarMode = MODE_1;
+			cur_track_state = 0;
+			StopPromopt();
+			TurnPID.Target = 0.0f;
 		}
 		
 	}
@@ -268,4 +283,29 @@ void Menu_UpDate(void)
 //	SensorPID.Ki = Menu_GetValue(SENSOR_PID_MENU, 1);
 //	SensorPID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
 	   
+}
+
+void TaskTwoPromopt(void)								//任务二提示函数
+{
+	static uint8_t PromoptFlag = 0;
+	static uint8_t PromoptCount = 0;
+	
+	if(onLinePromoptFlag == 1)
+	{
+		PromoptCount = 20;
+		onLinePromoptFlag = 0;
+	}
+		
+	if(PromoptCount > 0)
+	{
+		Promopt();
+		PromoptCount--;
+		if (PromoptCount == 1) {
+			task_two_stop_flag++;
+		}
+	} else {
+		StopPromopt();
+		
+	}
+		
 }

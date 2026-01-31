@@ -5,6 +5,7 @@
 #include "Encoder.h"
 #include "Menu.h"
 #include "turn_control.h"
+#include "BlueSerial.h"
 #include <math.h>
 
 void PID_Update(PID_t *p)			// 一般PID函数
@@ -98,44 +99,53 @@ void Balance_PIDControl(void)
 	Motor_SetPWM(2, RightPWM);
 }
 
+extern PID_t SensorPID;
+int sign = 1;
+double speed = 2.0f;
+int cur_track_state = 0;	// 这么搞主要是为了检测跳变
+double cur, prev;
 /** 
  * @brief 循迹环
  * @note 参数定义在main函数里方便修改
  * @return 无返回值，运行时进行调控，不运行时仍会测速
  */
-extern PID_t SensorPID;
-extern double yaw_offset;
-int sign = 1;
-double speed = 2.0f;
-
-int cur_track_state = 0;	// 这么搞主要是为了检测跳变
-
 void Sensor_PIDControl(void)
 {	
     if (!(CarMode == MODE_2 || CarMode == MODE_3)) return;
-
-    static int yaw_offset_counter = 0;
-    yaw_offset_counter++;
-    if (yaw_offset_counter > 100) {
-        yaw_offset = Sensor_GetSensorError();
-        yaw_offset_counter = 0;
-    }
-
+	
     // 更新断线状态
     cur_track_state = Sensor_CheckTrack();
     
     // 只在正常状态下进行循迹PID计算
     if (cur_track_state == 0) {
-        SensorPID.Actual = (float)Sensor_ComplementaryFilteredError(0.9f);
+		
+		prev = cur;
+		cur = Sensor_GetSensorError();
+        SensorPID.Actual = prev * 0.3f + cur * 0.7f;
+		
         PID_Update(&SensorPID);
         
         TurnPID.Target = SensorPID.Out;
         SpeedPID.Target = speed;
+		
     }
     // 断线状态下，保持上一次的PID输出或清零
-    else {
+    else if (cur_track_state == 2) {
+		if (fabs(168 - yaw) > 3) {
+			if (168 - yaw > 0) {
+				TurnPID.Target = -1.0f;
+			} else {
+				TurnPID.Target = 1.0f;
+			}
         // 可以选择清零或者保持
 //        SensorPID.Out = 0;
 //        TurnPID.Target = 0;
+		}
     }
+	
+////////////////////////////////////////////////////////////////////
+	
+	// BlueSerial_Printf("[plot,%lf,%lf,%lf\r\n]", SensorPID.Actual, SpeedPID.Target);
+
+////////////////////////////////////////////////////////////////////	
 }

@@ -70,41 +70,6 @@ double Sensor_GetSensorError(void)
     
     return Error;
 }
-
-extern float acc_yaw;
-const float dt = 0.01f;         // 10ms 的采样频率
-/** 
- * @brief 获取 线性Error值
- * @note 详情见我的 1.26学习日志，拟合函数值见Sensor.h
- * @return 一个 double 值，传到互补滤波去
- */
-double Sensor_GetYawError(void)
-{
-    double delta_yaw = acc_yaw * dt;
-    yaw_offset += delta_yaw;            // 这样记录的就是相对于目标值的偏差了
-    double mapped_integral_error = yaw_offset * MAPPING_FACTOR;
-    return mapped_integral_error; 
-}
-
-/** 
- * @brief 为离散Error和线性Error做互补滤波
- * @note 一个简单的互补滤波，ALPHA请在Sensor.h中调整
- * @return 返回一个 double, 用于PID
- */
-double Sensor_ComplementaryFilteredError(float ALPHA)
-{
-    static double Filtered_Error;
-
-    double Sensor_Error = Sensor_GetSensorError();
-    double Yaw_Error = Sensor_GetYawError();
-
-    Filtered_Error = Sensor_Error * ALPHA 
-                   + Yaw_Error * (1 - ALPHA);
-
-    return Filtered_Error;
-}
-
-extern float yaw;
 /** 
  * @brief 检查是不是 >TRACK LOST<
  * @note 卡车丢失

@@ -91,6 +91,7 @@ PID_t SensorPID = {
                                         函数声明
    ============================================================================================== */
 
+void TaskTwoPromopt(void);								//任务二提示函数
 void Menu_UpDate(void); //封装后的菜单更新函数
 
 /* ==============================================================================================
@@ -131,6 +132,7 @@ int main (void)
 			yaw_offset = 0;
 		}
 		
+		//蓝牙遥控代码
 		if(CarMode==MODE_5)
 		{
 			BlueSerial_Control(&SpeedPID.Target,&TurnPID.Target);
@@ -203,6 +205,7 @@ void pit_handler (void)
 	{
 		Count2 = 0;
 		Sensor_PIDControl();
+		TaskTwoPromopt();
 		
 		if(CarMode == MODE_2)
 		{
@@ -277,3 +280,42 @@ void Menu_UpDate(void)
 //	SensorPID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
 	   
 }
+
+void TaskTwoPromopt(void)								//任务二提示函数
+{
+	static uint8_t PromoptFlag=0;
+	static uint8_t PromoptCount=0;
+	
+	if(stop_flag==0&&PromoptFlag==0)
+		{
+			PromoptCount=20;
+			PromoptFlag=1;
+		}
+		if(stop_flag==1&&PromoptFlag==1)
+		{
+			PromoptCount=20;
+			PromoptFlag=2;
+		}
+		if(stop_flag==2&&PromoptFlag==2)
+		{
+			PromoptCount=20;
+			PromoptFlag=3;
+		}
+		if(stop_flag==3&&PromoptFlag==3)
+		{
+			PromoptCount=20;
+			PromoptFlag=4;
+		}
+		
+		if(PromoptCount>0)
+		{
+			Promopt();
+			PromoptCount--;
+		}else{
+			StopPromopt();
+		}
+		
+}
+
+
+

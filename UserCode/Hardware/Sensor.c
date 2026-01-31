@@ -7,6 +7,7 @@
 #include "Sensor.h"
 #include "Menu.h"
 #include "PID.h"
+#include <math.h>
 
 /* ==============================================================================================
                                         全局变量定义
@@ -17,7 +18,7 @@ double L3_WEIGHT = 5.0f;           // 次外面灯的权重
 double L2_WEIGHT = 3.0f;           // 次内部灯的权重
 double L1_WEIGHT = 1.0f;           // 内部灯的权重
 
-int track_lost_counter;
+int track_lost_counter = 0;
 double yaw_offset;
 
 /* ==============================================================================================
@@ -70,7 +71,7 @@ double Sensor_GetSensorError(void)
     return Error;
 }
 
-extern float gyro_yaw;
+extern float acc_yaw;
 const float dt = 0.01f;         // 10ms 的采样频率
 /** 
  * @brief 获取 线性Error值
@@ -79,7 +80,7 @@ const float dt = 0.01f;         // 10ms 的采样频率
  */
 double Sensor_GetYawError(void)
 {
-    double delta_yaw = gyro_yaw * dt;
+    double delta_yaw = acc_yaw * dt;
     yaw_offset += delta_yaw;            // 这样记录的就是相对于目标值的偏差了
     double mapped_integral_error = yaw_offset * MAPPING_FACTOR;
     return mapped_integral_error; 
@@ -90,7 +91,7 @@ double Sensor_GetYawError(void)
  * @note 一个简单的互补滤波，ALPHA请在Sensor.h中调整
  * @return 返回一个 double, 用于PID
  */
-double Sensor_ComplementaryFilteredError(void)
+double Sensor_ComplementaryFilteredError(float ALPHA)
 {
     static double Filtered_Error;
 
@@ -98,11 +99,12 @@ double Sensor_ComplementaryFilteredError(void)
     double Yaw_Error = Sensor_GetYawError();
 
     Filtered_Error = Sensor_Error * ALPHA 
-                   + (Yaw_Error + Filtered_Error) * (1 - ALPHA);
+                   + Yaw_Error * (1 - ALPHA);
 
     return Filtered_Error;
 }
 
+extern float yaw;
 /** 
  * @brief 检查是不是 >TRACK LOST<
  * @note 卡车丢失
@@ -110,15 +112,34 @@ double Sensor_ComplementaryFilteredError(void)
  */
 int Sensor_CheckTrack(void) 
 {
-    if (Sensor_GetSensorError() == 0) {
-        track_lost_counter++;
-        yaw_offset = 0;             // 在线上，所以 yaw_offset = 0
-    } else {
-        track_lost_counter = 0;
+    static int lost_flag = 0;  // 断线标志
+    static int lost_counter = 0;  // 断线计数器
+    
+    if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4) {
+        lost_counter++;
+    } 
+	else 
+	{
+        // 重新检测到线，重置状态
+        lost_counter = 0;
+        lost_flag = 0;
     }
-    if (track_lost_counter >= 50) { // 10ms检测一次在SensorPID里调用一次，所以0.5s没检测到线就是断线
-        return 1;
+    
+    // 连续10次（100ms）检测到全白
+    if (lost_counter >= 10) {
+        if (lost_flag == 0) 
+		{
+            // 第一次检测到断线
+            lost_flag = 1;
+            yaw_offset = 0;
+            return 1;  // 返回1表示刚断线
+        } 
+		else 
+		{
+            return 2;  // 返回2表示持续断线
+        }
     } else {
-        return 0;
+        return 0;  // 正常
     }
 }
+

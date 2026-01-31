@@ -9,7 +9,6 @@
 #include "diskio.h"
 #include "turn_control.h"
 #include "Inertial_Navigation.h"
-#include "task3.h"
 
 /* ==============================================================================================
                                         全局变量声明
@@ -35,8 +34,11 @@ float SpeedLeft,SpeedRight;
 float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
-int16_t turn_flag = 0;
+int16_t task3_turn_flag = 0;
+int16_t task3_stop_flag = 0;
 int16_t stop_flag = 0;
+int16_t turn_flag = 0;
+
 
 //循迹需要
 extern double speed;
@@ -116,8 +118,6 @@ int main (void)
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
 	
-	Task3_Init();                                           // 任务3初始化，采用状态机单独封装
-	
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
@@ -181,10 +181,10 @@ void pit_handler (void)
 		{
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
 			
-			if (Is_Angle_Turning())
-			{
-				Update_Angle_Turn();
-			}
+//			if (Is_Angle_Turning())
+//			{
+//				Update_Angle_Turn();
+//			}
 		}
 		else
 		{
@@ -232,7 +232,7 @@ void pit_handler (void)
 		
 	}
 /**********************************任务3*****************************************/
-	if(Count3 >= 15)
+	if(Count3 >= 18)
 	{
 		Count3 = 0;
 		Sensor_PIDControl();
@@ -240,7 +240,50 @@ void pit_handler (void)
 		// 使用封装后的任务3函数
 		if(CarMode == MODE_3)
 		{
-			Task3_Update(cur_track_state, CarMode);
+			//刚检测到断线
+			if(cur_track_state == 1)
+			{
+				task3_stop_flag ++;
+				task3_turn_flag = !task3_turn_flag;
+				gyro_yaw = 0.0f;
+				SensorPID.Ki = 0.0f;
+				if(task3_turn_flag == 1)
+				{
+					SpeedPID.Target = 0.0f;
+					system_delay_ms(500);
+					Start_Angle_Turn(50.2);
+				}
+				else if(task3_turn_flag == 0)
+				{
+					SpeedPID.Target = 0.0f;
+					system_delay_ms(500);
+					Start_Angle_Turn(-50.2);
+				}
+				if (Is_Angle_Turning())
+				{
+					Update_Angle_Turn();
+					TurnPID.Target = 0.0f;
+					SpeedPID.Target = 1.5f;
+				}
+				if(stop_flag == 9)
+				{
+					SpeedPID.Target  = 0.0f;
+					Menu_SetRunningMode(MODE_1);
+				}
+				
+			}
+			// 持续断线状态
+			else if (cur_track_state == 2) 
+			{
+				TurnPID.Target = 0.0f;
+				SensorPID.Ki = 0.0f;
+			}
+			// 正常状态
+			else
+			{
+				TurnPID.Target = SensorPID.Out;
+				SensorPID.Ki = 0.0f;
+			}
 		}
 	}
 /**********************************任务4*****************************************/

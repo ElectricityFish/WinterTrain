@@ -1,3 +1,4 @@
+
 /************************************************************************************************
 * @name   红外循迹与误差获取模块
 * @note   PID计算不在这里！
@@ -125,8 +126,8 @@ int Sensor_CheckTrack(void)
         lost_flag = 0;
     }
     
-    // 连续2次（20ms）检测到全白
-    if (lost_counter >= 2) {
+    // 连续10次（100ms）检测到全白
+    if (lost_counter >= 10) {
         if (lost_flag == 0) 
 		{
             // 第一次检测到断线
@@ -142,4 +143,3 @@ int Sensor_CheckTrack(void)
         return 0;  // 正常
     }
 }
-

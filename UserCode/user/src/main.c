@@ -45,7 +45,7 @@ uint8_t previouscur_track_state;	    //记录上一时刻的循迹状态，用�
 uint8_t onLinePromoptFlag=0;			//用于任务二的声光提示
 
 //任务三相关标志位
-#define  TASK3_TURN_ANGLE          40
+#define  TASK3_TURN_ANGLE          40   //每次转动的角度
 uint8_t task3_stop_flag = 0;            //完成标志位，用于判断小车是否跑完四圈
 uint8_t task3_direction_flag = 1;       //方向标志位，1->逆时针,-1->顺时针
 uint8_t task3_mode_flag = 0;            //模式切换标志位, 0->任务三循迹, 1->任务一停车
@@ -197,10 +197,10 @@ void pit_handler (void)
 		{
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
 			
-			if (Is_Angle_Turning())
-			{
-				Update_Angle_Turn();
-			}
+//			if (Is_Angle_Turning())
+//			{
+//				Update_Angle_Turn();
+//			}
 		}
 		else
 		{
@@ -254,58 +254,74 @@ void pit_handler (void)
 		
 	}
 /////////////////////////////任务三////////////////////////////////////
-	if(Count3 >= 18)
+	if(Count3 >= 18)  // 每18ms执行一次
 	{
-		Count3 = 8;
-		previouscur_track_state=cur_track_state;
-		Sensor_PIDControl();
-		TaskTwoPromopt();
-		
+		Count3 = 0;
 		if(CarMode == MODE_3)
 		{
-			//检测到断点
-			if(previouscur_track_state != cur_track_state)
-			{
-				onLinePromoptFlag=1;
-				task3_stop_flag ++;
-				task3_mode_flag = !task3_mode_flag;
-				gyro_yaw = 0.0f;
-				TurnPID.Target = 0.0f;
-				SensorPID.Ki = 0.0f;
-				if(task3_mode_flag == 1)
-				{
-					SpeedPID.Target  = 0.0f;
-					Menu_SetRunningMode(MODE_1);
-					Start_Angle_Turn(task3_direction_flag * TASK3_TURN_ANGLE);
-					SpeedPID.Target = 1.5f;
-				}
-				else if(task3_mode_flag == 0)
-				{
-					Menu_SetRunningMode(MODE_3);
-					Sensor_PIDControl();
-				}
-				if(task3_stop_flag == 3)
-				{
-					SpeedPID.Target  = 0.0f;
-					Menu_SetRunningMode(MODE_1);
-				}
+			// 保存之前的循迹状态
+			previouscur_track_state = cur_track_state;
+			
+			// 更新传感器状态
+			Sensor_PIDControl();
+			
+			// 任务3的声光提示
+			if(previouscur_track_state != cur_track_state) {
+				onLinePromoptFlag = 1;
 			}
-			// 持续断线状态
-			else if (cur_track_state == 2) 
-			{
-				TurnPID.Target = 0.0f;
-				SensorPID.Ki = 0.0f;
-			}
-			// 正常状态
-			else
-			{
-				TurnPID.Target = SensorPID.Out;
-				SensorPID.Ki = 0.0f;
+			TaskTwoPromopt();
+			
+			// 任务3的核心逻辑
+			switch(task3_mode_flag) {
+				case 0:  // 循迹模式
+					// 检测到断点
+					if(previouscur_track_state != cur_track_state && cur_track_state == 1) {
+						task3_stop_flag++;
+						
+						SpeedPID.Target = 0.0f;
+						TurnPID.Target = 0.0f;
+						SensorPID.Ki = 0.0f;
+						gyro_yaw = 0.0f;
+
+						// 开始转向
+						Start_Angle_Turn(task3_direction_flag * TASK3_TURN_ANGLE);
+						task3_mode_flag = 1;  // 切换到直行模式
+
+					}
+					break;
+					
+				case 1:  // 直行模式
+					// 检查是否还在转向
+					if(Is_Angle_Turning()) {
+						Update_Angle_Turn();
+					} else {
+						// 转向完成，开始直行
+						SpeedPID.Target = 1.5f;
+						TurnPID.Target = 0.0f;  // 保持直行
+						
+						// 检测是否重新检测到赛道
+						if(cur_track_state == 0) {
+							// 重新开始循迹
+							task3_mode_flag = 0;
+							SpeedPID.Target = speed;  // 恢复正常速度
+							
+							// 切换转向方向（为下次转向做准备）
+							task3_direction_flag = -task3_direction_flag;
+						}
+					}
+					
+					// 检查是否完成四圈
+					if(task3_stop_flag >= 9) {  // 完成四圈（每圈2次断线）
+						task3_stop_flag = 0;
+						task3_mode_flag = 0;
+						SpeedPID.Target = 0.0f;
+						Menu_SetRunningMode(MODE_1);  // 最终停车
+					}
+					break;
 			}
 		}
 	}
 }
-
 
 /**
  * @brief 封装后的菜单跟新函数

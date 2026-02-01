@@ -99,6 +99,7 @@ void Balance_PIDControl(void)
 	Motor_SetPWM(2, RightPWM);
 }
 
+extern float test_angle;
 extern PID_t SensorPID;
 int sign = 1;
 double speed = 2.0f;
@@ -121,7 +122,7 @@ void Sensor_PIDControl(void)
 		
 		prev = cur;
 		cur = Sensor_GetSensorError();
-        SensorPID.Actual = prev * 0.3f + cur * 0.7f;
+        SensorPID.Actual = prev * 0.2f + cur * 0.8f;
 		
         PID_Update(&SensorPID);
         
@@ -130,16 +131,15 @@ void Sensor_PIDControl(void)
 		
     }
     // 断线状态下，保持上一次的PID输出或清零
-    else if (cur_track_state == 2) {
-		if (fabs(168 - yaw) > 3) {
-			if (168 - yaw > 0) {
-				TurnPID.Target = -1.0f;
-			} else {
-				TurnPID.Target = 1.0f;
+    else if (cur_track_state == 2 && CarMode == MODE_2) {
+		if (fabs(172 - yaw + test_angle) < 15.0f) {
+			if (fabs(172 - yaw + test_angle) > 2.0f) {
+				if ((172 - yaw + test_angle) > 0) {
+					TurnPID.Target = -1.0f;
+				} else {
+					TurnPID.Target = 1.0f;
+				}
 			}
-        // 可以选择清零或者保持
-//        SensorPID.Out = 0;
-//        TurnPID.Target = 0;
 		}
     }
 	

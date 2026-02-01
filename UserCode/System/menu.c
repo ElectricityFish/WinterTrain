@@ -428,6 +428,8 @@ void Menu_Init(void)
     Menu_Refresh();
 }
 
+extern int cur_track_state;
+extern int turn_count;
 /** 
  * @brief 刷新界面
  * @note 根据当前的信息在OLED上打印信息。
@@ -471,7 +473,7 @@ void Menu_Refresh(void)
             oled_show_float(100, i, yaw, 3, 1);
         } else if (interface[current_interface].option_mode[i] == READ_ENCODER) {
             oled_show_int(60, i, task_two_stop_flag, 1);
-//            oled_show_int(100, i, RIGHT_ENCODER, 3);
+            oled_show_int(100, i, turn_count, 3);
         }
     }
 
@@ -493,7 +495,7 @@ void Menu_JustRefreshValue(void)
             oled_show_float(100, i, yaw, 3, 1);
         } else if (interface[current_interface].option_mode[i] == READ_ENCODER) {
             oled_show_int(60, i, task_two_stop_flag, 1);
-//            oled_show_int(100, i, RIGHT_ENCODER, 3);
+            oled_show_int(100, i, turn_count, 3);
         }
     }  
 }

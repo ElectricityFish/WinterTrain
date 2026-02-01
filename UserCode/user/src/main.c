@@ -10,6 +10,7 @@
 #include "turn_control.h"
 #include "Inertial_Navigation.h"
 #include "BlueSerial.h"
+#include <math.h>
 
 /* ==============================================================================================
                                         全局变量声明
@@ -35,7 +36,10 @@ int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 int16_t turn_flag = 0;
 int16_t task_two_stop_flag = 0;
-
+int16_t task_three_stop_flag = 0;
+int16_t init_flag = 0;
+int turn_count = 1;
+float test_angle;
 
 // 循迹需要
 extern double speed;
@@ -78,7 +82,7 @@ PID_t TurnPID={
 };
 
 PID_t SensorPID = {
-    .Kp         = 8.5f,
+    .Kp         = 17.5f,
     .Ki         = 0.0f,
     .Kd         = 7.5f,
 
@@ -86,6 +90,13 @@ PID_t SensorPID = {
     .OutMax     = 10000.0f,
     .OutMin     = -10000.0f,
 };
+
+enum STATE {
+	ON_TRACK,
+	TRACK_LOST,
+	OFF_TRACK
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* ==============================================================================================
@@ -126,10 +137,7 @@ int main (void)
 		CarMode = Menu_GetCurMode();
 		if(key_get_state(KEY_2)) 
 		{
-			gyro_yaw = 0;
-			speed = 2.0f;
-			task_two_stop_flag = 0;
-			StopPromopt();
+			init_flag = 1;
 		}
 		
 	}
@@ -147,13 +155,15 @@ void pit_handler (void)
 	static uint8_t Count0=0;
 	static uint8_t Count1=5; //初始值不同进行错峰更新
 	static uint8_t Count2=2;
+	static uint8_t Count3 = 8;
 	Count0++;
 	Count1++;
 	Count2++;
+	Count3++;
 	
 	system_time_ms++;  // 增加系统时间
 	
-	if (CarMode == MODE_2) {
+	if (CarMode == MODE_2 || CarMode == MODE_3) {
 		SpeedPID.Ki = 0.0f;
 	} else {
 		SpeedPID.Ki = -1200.0 / 200.0f;
@@ -201,37 +211,47 @@ void pit_handler (void)
 		
 		if(CarMode == MODE_2)
 		{
+			if (init_flag == 1) {
+				gyro_yaw = 0;
+				speed = 2.0f;
+				task_two_stop_flag = 0;
+				StopPromopt();
+				TurnPID.Target = 0.0f;
+				previouscur_track_state = 0;
+				cur_track_state = 0;
+				test_angle = 0.0f;
+				
+				init_flag = 0;
+			}	
+		
 			previouscur_track_state = cur_track_state;
 			Sensor_PIDControl();
 			TaskTwoPromopt();
 			
 			// 刚检测到断线
-			if (cur_track_state == 1) 
+			if (cur_track_state == TRACK_LOST) 
 			{
-				// TurnPID.Target = 0.0f;
-			
+				SpeedPID.Target = 2.0f;
 			}
 			// 持续断线状态
-			else if (cur_track_state == 2) 
+			else if (cur_track_state == OFF_TRACK) 
 			{
-				// TurnPID.Target = 0.0f;
+				SpeedPID.Target = 2.0f;
 			}
 			// 正常状态
 			else
 			{
-				if (previouscur_track_state == 2) {
+				if (previouscur_track_state == OFF_TRACK) {
+					test_angle = fabs(180.0f - fabs(yaw)) * (yaw / fabs(yaw));
 					gyro_yaw = 0;
 				}
-				TurnPID.Target = SensorPID.Out;
-				SensorPID.Ki = 0.0f;
 			}
 			
 			if(previouscur_track_state != cur_track_state){
 				onLinePromoptFlag = 1;
 			} 
-			
 		}
-		if(task_two_stop_flag == 4) // you need to rest
+		if(task_two_stop_flag == 5) // you need to rest
 		{
 			SpeedPID.Target  = 0.0f;
 			Menu_SetRunningMode(MODE_1);
@@ -239,9 +259,91 @@ void pit_handler (void)
 			cur_track_state = 0;
 			StopPromopt();
 			TurnPID.Target = 0.0f;
+			task_two_stop_flag = 0;
 		}
-		
 	}
+///////////////////////////////////////////////////////////////////////////////////////////////// 任务3
+	if(Count3 >= 10)  // 每10ms执行一次
+	{
+		Count3 = 0;
+		
+		if(CarMode == MODE_3)
+		{
+			if (init_flag == 1) {
+				gyro_yaw = 0;
+				speed = 1.2f;
+				task_three_stop_flag = 0;
+				StopPromopt();
+				TurnPID.Target = 0.0f;
+				previouscur_track_state = 0;
+				cur_track_state = 0;
+				turn_count = 0;
+				
+				init_flag = 0;
+			}
+			
+			previouscur_track_state = cur_track_state;
+			Sensor_PIDControl();
+			
+			if(previouscur_track_state != cur_track_state) {
+				onLinePromoptFlag = 1;
+			}
+			TaskTwoPromopt();		
+			
+			int flag_to_turn = 0;
+			// 刚检测到断线
+			if (cur_track_state == TRACK_LOST) 
+			{
+				SpeedPID.Target = 1.2f;
+				flag_to_turn = 1;
+
+			}
+			// 持续断线状态
+			else if (cur_track_state == OFF_TRACK) 
+			{
+				SpeedPID.Target = 1.2f;
+				if (fabs(gyro_yaw) > 38.5) {
+					Stop_Angle_Turn();
+				}
+			}
+			// 正常状态
+			else {
+			}
+			
+			// 任务3的核心逻辑
+			if (task_three_stop_flag < 16) {
+				if (flag_to_turn == 1) {
+					gyro_yaw = 0;
+					if (turn_count % 2 == 0) {
+						Start_Angle_Turn(-38.5f);
+						turn_count++;
+					} else {
+						Start_Angle_Turn(40.0f);
+						turn_count++;
+					}
+					flag_to_turn = 0;
+					/*
+					gyro_yaw = 0;
+					TurnPID.Target = -2.0f;
+					if (fabs(gyro_yaw) >= 37.0f) {
+						flag_to_turn = 0;
+						TurnPID.Target = 0.0f;
+					}
+					*/
+				}
+			} else {
+				SpeedPID.Target  = 0.0f;
+				Menu_SetRunningMode(MODE_1);
+				CarMode = MODE_1;
+				cur_track_state = 0;
+				StopPromopt();
+				TurnPID.Target = 0.0f;
+				task_three_stop_flag = 0;
+			}
+			
+		}
+	}
+
 	
 }
 
@@ -302,6 +404,7 @@ void TaskTwoPromopt(void)								//任务二提示函数
 		PromoptCount--;
 		if (PromoptCount == 1) {
 			task_two_stop_flag++;
+			task_three_stop_flag++;
 		}
 	} else {
 		StopPromopt();

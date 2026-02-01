@@ -10,6 +10,9 @@
 extern uint16_t stop_flag;
 extern uint16_t turn_flag;
 
+extern uint16_t task3_stop_flag;
+extern uint16_t task3_mode_flag;
+
 // 注意，为了方便Flash存储，这个菜单里的值是用int存储的，但是其实际表示的值是除以10的。
 
 /* ==============================================================================================
@@ -50,7 +53,7 @@ Interface_TypeDef interface[100] = {
             "Boot Mode 4", 
             "Boot Mode 5", 
             "P / Y", 
-            "S / T"
+            "S / M"
         },
         .option_mode = {
             INTERACTIBLE, 
@@ -471,8 +474,8 @@ void Menu_Refresh(void)
             oled_show_float(60, i, pitch, 3, 1);
             oled_show_float(100, i, yaw, 3, 1);
         } else if (interface[current_interface].option_mode[i] == READ_ENCODER) {
-            oled_show_int(60, i, stop_flag, 1);
-            oled_show_int(100, i, turn_flag, 1);
+            oled_show_int(60, i, task3_stop_flag, 1);
+            oled_show_int(100, i, task3_mode_flag, 1);
         }
     }
 
@@ -493,8 +496,8 @@ void Menu_JustRefreshValue(void)
             oled_show_float(60, i, pitch, 3, 1);
             oled_show_float(100, i, yaw, 3, 1);
         } else if (interface[current_interface].option_mode[i] == READ_ENCODER) {
-            oled_show_int(60, i, stop_flag, 1);
-			oled_show_int(100, i, turn_flag, 1);
+            oled_show_int(60, i, task3_stop_flag, 1);
+            oled_show_int(100, i, task3_mode_flag, 1);
         }
     }  
 }

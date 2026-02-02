@@ -70,6 +70,9 @@ double Sensor_GetSensorError(void)
     
     return Error;
 }
+
+extern boot_mode CarMode;
+extern int turn_count;
 /** 
  * @brief 检查是不是 >TRACK LOST<
  * @note 卡车丢失

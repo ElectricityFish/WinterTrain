@@ -302,12 +302,13 @@ void pit_handler (void)
 			else if (cur_track_state == OFF_TRACK) 
 			{
 				SpeedPID.Target = 1.2f;
-				if (fabs(gyro_yaw) > 38.5) {
+				if (fabs(gyro_yaw) > 37.0f) {
 					Stop_Angle_Turn();
 				}
 			}
 			// 正常状态
 			else {
+				
 			}
 			
 			// 任务3的核心逻辑
@@ -322,14 +323,6 @@ void pit_handler (void)
 						turn_count++;
 					}
 					flag_to_turn = 0;
-					/*
-					gyro_yaw = 0;
-					TurnPID.Target = -2.0f;
-					if (fabs(gyro_yaw) >= 37.0f) {
-						flag_to_turn = 0;
-						TurnPID.Target = 0.0f;
-					}
-					*/
 				}
 			} else {
 				SpeedPID.Target  = 0.0f;

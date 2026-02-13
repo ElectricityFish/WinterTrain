@@ -1332,6 +1332,16 @@
               <FileType>5</FileType>
               <FilePath>..\System\Inertial_Navigation.h</FilePath>
             </File>
+            <File>
+              <FileName>nav_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\nav_flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>nav_flash.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\nav_flash.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

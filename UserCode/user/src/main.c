@@ -275,7 +275,7 @@ void pit_handler (void)
 			switch(task3_mode_flag) {
 				case 0:  // 循迹模式
 					// 检测到断点
-					if(previouscur_track_state != cur_track_state && cur_track_state == 1) {
+					if(cur_track_state == 1) {
 						task3_stop_flag++;
 						
 						SpeedPID.Target = 0.0f;

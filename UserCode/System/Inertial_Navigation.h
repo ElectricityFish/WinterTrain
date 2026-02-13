@@ -2,88 +2,70 @@
 #define __INERTIAL_NAVIGATION_H
 
 #include "zf_common_headfile.h"
+#include <stdbool.h>
 
-/* ==============================================================================================
-                                        宏定义和枚举类型定义
-   ============================================================================================== */
+extern uint8_t road_memery_finish_plus_flag;     // 路径记忆完成标志位
+extern uint8_t road_memery_start_plus_flag;      // 路径记忆开始标志位
+extern uint8_t road_recurrent_plus_flag;         // 路径复现标志位
 
-// Flash存储配置
-#define INERTIAL_NAV_FLASH_SECTOR         100     // 惯导数据存储扇区
-#define INERTIAL_NAV_FLASH_PAGE           0       // 惯导数据存储页
-#define INERTIAL_NAV_MAX_POINTS           512     // 最大记录点数（每点8字节，一页512个点）
-#define INERTIAL_NAV_RECORD_INTERVAL_MS   20      // 记录间隔20ms（50Hz采样）
+extern uint16_t NUM_L_Plus, NUM_R_Plus;
+extern volatile float x, y;
+extern float X_Memery_Plus[FLASH_DATA_BUFFER_SIZE * 6];
+extern float Y_Memery_Plus[FLASH_DATA_BUFFER_SIZE * 6];
+extern float X_Memery_Store_Plus[FLASH_DATA_BUFFER_SIZE * 6];
+extern float Y_Memery_Store_Plus[FLASH_DATA_BUFFER_SIZE * 6];
 
-// 记录数据类型枚举
-typedef enum {
-    INERTIAL_NAV_IDLE = 0,       // 空闲状态
-    INERTIAL_NAV_RECORDING,      // 正在记录
-    INERTIAL_NAV_REPLAYING,      // 正在回放
-    INERTIAL_NAV_FINISHED        // 回放完成
-} inertial_nav_state_t;
+typedef struct
+{
+    volatile int32_t total_pulses;             // 累计脉冲数（可能为负，表示反向转动）
+    volatile int32_t last_total_pulses;        // 上一次的累计脉冲数，用于检测跨阈值
+    volatile int16_t encoder_last;             // 上一次编码器值（用于Update_Wheel_Pulses）
+    volatile int16_t encoder_prev_speed;       // 速度计算基准值（用于Get_Wheel_Speed）
+    const int32_t target_pulses;               // 虚拟清零阈值（常量，初始化后不可修改）
+} WheelData;
 
-// 路径点数据结构
-#pragma pack(push, 1)  // 1字节对齐，节省Flash空间
-typedef struct {
-    int16_t left_speed;          // 左轮速度（编码器计数）
-    int16_t right_speed;         // 右轮速度（编码器计数）
-    float   pitch;               // 俯仰角
-    float   yaw;                 // 偏航角
-    uint8_t flags;               // 标志位
-} path_point_t;
-#pragma pack(pop)
+extern WheelData wheel_left, wheel_right;
+extern volatile int32_t speed_left;
+extern volatile int32_t speed_right;
+extern volatile int16_t err_Nav_plus;
+extern volatile float e_lat;
 
-// 路径头信息结构
-typedef struct {
-    uint16_t    point_count;     // 路径点数
-    uint16_t    record_time_ms;  // 记录总时间（毫秒）
-    uint32_t    checksum;        // 校验和
-    uint8_t     version;         // 版本号
-    uint8_t     reserved[3];     // 保留字节
-} path_header_t;
+/*打滑检测配置参数*/
+#define WHEEL_BASE_CM  15.0f                    // 左右轮间距（单位：厘米）
+#define ENCODER_PULSES_PER_REVOLUTION    366    // 每1cm编码器脉冲数
+#define SAMPLING_INTERVAL_MS    5               // 数据采样间隔（单位：毫秒）与电机中断周期有关
 
-/* ==============================================================================================
-                                        全局变量声明
-   ============================================================================================== */
+/* 横向打滑检测阈值 */
+#define LATERAL_SLIP_YAW_RATE_THRESHOLD 10.0f // 偏航角速度偏差阈值（单位：弧度/秒）
+#define MIN_LATERAL_DETECT_SPEED_CMPS 200.0f  // 最低横向检测速度（单位：厘米/秒）
 
-extern inertial_nav_state_t inertial_nav_state;
-extern uint16_t inertial_nav_current_index;
-extern uint16_t inertial_nav_total_points;
-extern path_header_t inertial_nav_header;
-extern path_point_t inertial_nav_current_point;
+/* 纵向打滑检测阈值 */
+#define LONGITUDINAL_ACCEL_DIFF_THRESHOLD 1.0f  // 加速度差异阈值（单位：米/秒?）
+#define MIN_LONGITUDINAL_DETECT_SPEED_CMPS 1.0f // 最低纵向检测速度（单位：米/秒）
 
-/* ==============================================================================================
-                                        函数声明
-   ============================================================================================== */
+/* 滑移标志位掩码 */
+typedef enum
+{
+    SLIP_FLAG_NONE = 0x00,               // 无滑移
+    SLIP_FLAG_LATERAL_LEFT = 0x01,       // 左侧横向滑移（左轮打滑）
+    SLIP_FLAG_LATERAL_RIGHT = 0x02,      // 右侧横向滑移（右轮打滑）
+    SLIP_FLAG_LONGITUDINAL_ACCEL = 0x04, // 纵向加速滑移（驱动轮空转）
+    SLIP_FLAG_LONGITUDINAL_DECEL = 0x08  // 纵向减速滑移（轮胎抱死）
+} SlipFlags;
 
-// 初始化函数
-void Inertial_Nav_Init(void);
+/* 外部变量声明 */
+extern volatile SlipFlags wheelSlipFlags; // 滑移状态标志位
 
-// 记录相关函数
-void Inertial_Nav_StartRecord(void);
-void Inertial_Nav_StopRecord(void);
-void Inertial_Nav_SaveToFlash(void);
-void Inertial_Nav_RecordPoint(void);
+extern volatile float leftWheelSpeedCmps;  // 左轮线速度（单位：厘米/秒）
+extern volatile float rightWheelSpeedCmps; // 右轮线速度（单位：厘米/秒）
+extern volatile float currentAvgSpeedCmps; // 当前平均轮速（单位：米 /秒）
+extern volatile int locate_index;          // 小车定位点
+extern uint16_t road_destination;
 
-// 回放相关函数
-void Inertial_Nav_StartReplay(void);
-void Inertial_Nav_StopReplay(void);
-void Inertial_Nav_LoadFromFlash(void);
-uint8_t Inertial_Nav_GetNextPoint(void);
-
-// 状态检查函数
-uint8_t Inertial_Nav_IsRecording(void);
-uint8_t Inertial_Nav_IsReplaying(void);
-uint8_t Inertial_Nav_IsFinished(void);
-
-// 数据获取函数
-uint16_t Inertial_Nav_GetCurrentIndex(void);
-uint16_t Inertial_Nav_GetTotalPoints(void);
-uint16_t Inertial_Nav_GetRemainingTime(void);
-
-// Flash操作函数
-void Inertial_Nav_FlashErase(void);
-uint8_t Inertial_Nav_FlashWriteData(uint32_t addr, const void* data, uint16_t size);
-uint8_t Inertial_Nav_FlashReadData(uint32_t addr, void* data, uint16_t size);
-uint32_t Inertial_Nav_CalculateChecksum(const void* data, uint16_t size);
+void Distance_Get_Plus(void);
+int32_t Get_Wheel_Speed(WheelData *wheel, int16_t current_encoder);
+int32_t Update_Wheel_Pulses(WheelData *wheel, int16_t current_encoder);
+void Slip_Check(void);
+int16_t pure_pursuit_control(void);
 
 #endif

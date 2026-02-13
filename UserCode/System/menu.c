@@ -395,12 +395,12 @@ void Menu_Event(EVENT_ID action_id)
         case BOOT_MODE_4_RECORD:
             running_mode = MODE_4_RECORD;
             current_mode = RUNNING;
-			Inertial_Nav_StartRecord();  // 开始记录路径
+			// 开始记录路径
             break;
         case BOOT_MODE_4_REPLAY:
             running_mode = MODE_4_REPLAY;
             current_mode = RUNNING;
-			Inertial_Nav_StartReplay();  // 开始回放路径
+			// 开始回放路径
             break;
         case BOOT_MODE_5:
             running_mode = MODE_5;

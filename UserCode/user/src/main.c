@@ -372,9 +372,6 @@ void TaskTwoPromopt(void)								//任务二提示函数
 		PromoptCount=20;
 		onLinePromoptFlag=0;
 	}
-	
-
-		
 		if(PromoptCount>0)
 		{
 			Promopt();

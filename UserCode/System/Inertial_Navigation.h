@@ -4,68 +4,58 @@
 #include "zf_common_headfile.h"
 #include <stdbool.h>
 
-extern uint8_t road_memery_finish_plus_flag;     // 路径记忆完成标志位
-extern uint8_t road_memery_start_plus_flag;      // 路径记忆开始标志位
-extern uint8_t road_recurrent_plus_flag;         // 路径复现标志位
+extern float SpeedLeft;
+extern float SpeedRight;
+extern float yaw;
 
-extern uint16_t NUM_L_Plus, NUM_R_Plus;
-extern volatile float x, y;
-extern float X_Memery_Plus[FLASH_DATA_BUFFER_SIZE * 6];
-extern float Y_Memery_Plus[FLASH_DATA_BUFFER_SIZE * 6];
-extern float X_Memery_Store_Plus[FLASH_DATA_BUFFER_SIZE * 6];
-extern float Y_Memery_Store_Plus[FLASH_DATA_BUFFER_SIZE * 6];
+//*********************用户设置区域****************************//
+#define MaxSize 253    //flash存储的最大页面
 
-typedef struct
-{
-    volatile int32_t total_pulses;             // 累计脉冲数（可能为负，表示反向转动）
-    volatile int32_t last_total_pulses;        // 上一次的累计脉冲数，用于检测跨阈值
-    volatile int16_t encoder_last;             // 上一次编码器值（用于Update_Wheel_Pulses）
-    volatile int16_t encoder_prev_speed;       // 速度计算基准值（用于Get_Wheel_Speed）
-    const int32_t target_pulses;               // 虚拟清零阈值（常量，初始化后不可修改）
-} WheelData;
+#define Read_MaxSize 10000//最大读取设置，1w个应该是够了
 
-extern WheelData wheel_left, wheel_right;
-extern volatile int32_t speed_left;
-extern volatile int32_t speed_right;
-extern volatile int16_t err_Nav_plus;
-extern volatile float e_lat;
+//参数范围 <0 - 47>
+#define Nag_End_Page 50      //flash中止页面
+#define Nag_Start_Page 100   //flah起始页面
 
-/*打滑检测配置参数*/
-#define WHEEL_BASE_CM  15.0f                    // 左右轮间距（单位：厘米）
-#define ENCODER_PULSES_PER_REVOLUTION    366    // 每1cm编码器脉冲数
-#define SAMPLING_INTERVAL_MS    5               // 数据采样间隔（单位：毫秒）与电机中断周期有关
+#define Nag_Set_mileage 420 //1cm记录一次
+#define Nag_Prev 200         //前瞻
+#define Nag_Yaw yaw          //陀螺仪读取出来的偏航角
 
-/* 横向打滑检测阈值 */
-#define LATERAL_SLIP_YAW_RATE_THRESHOLD 10.0f // 偏航角速度偏差阈值（单位：弧度/秒）
-#define MIN_LATERAL_DETECT_SPEED_CMPS 200.0f  // 最低横向检测速度（单位：厘米/秒）
+#define L_Mileage SpeedLeft   //左轮编码器
+#define R_Mileage SpeedRight  //右轮编码器
+//********************************************************//
 
-/* 纵向打滑检测阈值 */
-#define LONGITUDINAL_ACCEL_DIFF_THRESHOLD 1.0f  // 加速度差异阈值（单位：米/秒?）
-#define MIN_LONGITUDINAL_DETECT_SPEED_CMPS 1.0f // 最低纵向检测速度（单位：米/秒）
+typedef struct{
+       float Final_Out; //最终输出
+       float Mileage_All;   //里程计数
+       float Angle_Run; //读取的偏航角
+       bool Nag_Stop_f; //惯导中止flag
+       uint8 Flash_read_f;//惯导读取flag
+       uint16 size; //惯导数组索引通用计数
+       uint16 Run_index;
+       uint16 Save_count;
+       uint16 Save_index;//保存的flag
+       uint8 Save_state;
+       uint8 End_f;//中止flag
+       //与flash相关的
+       uint8 Flash_page_index;//flash页面索引
+       uint8 Flash_Save_Page_Index;//flash保存页码索引
+       uint8 Nag_SystemRun_Index;   //惯导执行索引
+       //暂时未开发部分
+       int Prev_mile[Nag_Prev]; //前瞻
+}Nag;
 
-/* 滑移标志位掩码 */
-typedef enum
-{
-    SLIP_FLAG_NONE = 0x00,               // 无滑移
-    SLIP_FLAG_LATERAL_LEFT = 0x01,       // 左侧横向滑移（左轮打滑）
-    SLIP_FLAG_LATERAL_RIGHT = 0x02,      // 右侧横向滑移（右轮打滑）
-    SLIP_FLAG_LONGITUDINAL_ACCEL = 0x04, // 纵向加速滑移（驱动轮空转）
-    SLIP_FLAG_LONGITUDINAL_DECEL = 0x08  // 纵向减速滑移（轮胎抱死）
-} SlipFlags;
+extern Nag N;   //整个变量的结构体，方便开发和移植
+extern int32 Nav_read[Read_MaxSize];
 
-/* 外部变量声明 */
-extern volatile SlipFlags wheelSlipFlags; // 滑移状态标志位
+void Nag_Run(); //偏航角复现总函数
+void Run_Nag_GPS();//偏航角复现
 
-extern volatile float leftWheelSpeedCmps;  // 左轮线速度（单位：厘米/秒）
-extern volatile float rightWheelSpeedCmps; // 右轮线速度（单位：厘米/秒）
-extern volatile float currentAvgSpeedCmps; // 当前平均轮速（单位：米 /秒）
-extern volatile int locate_index;          // 小车定位点
-extern uint16_t road_destination;
-
-void Distance_Get_Plus(void);
-int32_t Get_Wheel_Speed(WheelData *wheel, int16_t current_encoder);
-int32_t Update_Wheel_Pulses(WheelData *wheel, int16_t current_encoder);
-void Slip_Check(void);
-int16_t pure_pursuit_control(void);
+void NagFlashRead();   //Flash读取到目标数组。
+void Run_Nag_Save();    //偏航角读取函数
+void Nag_Read();    //偏航角读取总函数
+//****************************//
+void Init_Nag();    //这个是参数初始化与flash的缓冲区初始化，请放到函数开始。
+void Nag_System();  //这个是惯性导航最后的包装函数，请放到中断中。
 
 #endif

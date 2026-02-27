@@ -10,6 +10,7 @@
 #include "turn_control.h"
 #include "Inertial_Navigation.h"
 #include "BlueSerial.h"
+#include <math.h>
 
 /* ==============================================================================================
                                         全局变量声明
@@ -37,6 +38,11 @@ int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 int16_t turn_flag = 0;
 int16_t stop_flag = 0;
+
+float Total_Encoder_L = 0;
+float Total_Encoder_R = 0;
+static float Last_SpeedLeft = 0;
+static float Last_SpeedRight = 0;
 
 //循迹需要
 extern double speed;
@@ -129,6 +135,8 @@ int main (void)
 	
 	BludeSerial_Init();										//蓝牙初始化
 	
+	Init_Nag();
+	
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
@@ -218,6 +226,87 @@ void pit_handler (void)
 			Motor_SetPWM(2,0);
 			SpeedPID.ErrorInt = 0;
 			SensorPID.ErrorInt = 0;
+		}
+		/*
+		惯导的代码放在这，与yaw角的获取频率一致
+		*/
+		if(N.Nav_System_Run_Index != 0)
+		{
+			
+			// 声明静态变量，用于记录复现模式下的历史速度 (计算加速度用)
+			static float Replay_Last_L = 0.0f;
+			static float Replay_Last_R = 0.0f;
+
+			// =========================================================
+			// 【模式 1：录制模式 (Teach)】- 绝对纯净，0 延迟，0 限幅
+			// =========================================================
+			if(N.Nav_System_Run_Index == 1) 
+			{
+				// 录制时：完全信任真实脉冲，不漏掉任何一个微小的转角
+				Total_Encoder_L = SpeedLeft;
+				Total_Encoder_R = SpeedRight;
+				
+				// 实时同步历史值，防止未来切入复现模式瞬间产生巨大跳变
+				Replay_Last_L = SpeedLeft;
+				Replay_Last_R = SpeedRight;
+			}
+			// =========================================================
+			// 【模式 3：复现模式 (Replay)】- 开启双重防打滑保护
+			// =========================================================
+			else if(N.Nav_System_Run_Index == 3)
+			{
+				float nav_L = SpeedLeft;
+				float nav_R = SpeedRight;
+				
+				// --- 第一重保护：加速度限幅 (防起步/急刹瞬间打滑) ---
+				float delta_L = nav_L - Replay_Last_L;
+				float delta_R = nav_R - Replay_Last_R;
+				
+				// 【参数】加速度阈值：2ms内脉冲突变不允许超过 15。
+				// (15相当于极强的物理推背感，超过这个值99%是车轮空转打滑)
+				float slip_threshold = 40.0f; 
+				
+				if (fabsf(delta_L) > slip_threshold) {
+					nav_L = Replay_Last_L + (delta_L > 0 ? slip_threshold : -slip_threshold);
+				}
+				if (fabsf(delta_R) > slip_threshold) {
+					nav_R = Replay_Last_R + (delta_R > 0 ? slip_threshold : -slip_threshold);
+				}
+				
+				// --- 第二重保护：绝对物理极限限幅 (防彻底腾空空转) ---
+				// 【参数】最大车速阈值：假设车子物理极限速度是 120cm/s (约 150脉冲/2ms)
+				float max_abs_speed = 150.0f; 
+				if(nav_L > max_abs_speed) nav_L = max_abs_speed; else if(nav_L < -max_abs_speed) nav_L = -max_abs_speed;
+				if(nav_R > max_abs_speed) nav_R = max_abs_speed; else if(nav_R < -max_abs_speed) nav_R = -max_abs_speed;
+				
+				// 更新历史值供下个2ms使用
+				Replay_Last_L = nav_L;
+				Replay_Last_R = nav_R;
+				
+				// 喂给导航系统进行安全积分
+				Total_Encoder_L = nav_L;
+				Total_Encoder_R = nav_R;
+			}
+			
+			Nag_System(); // 执行惯导核心 (10ms 一次)
+			
+			if(N.Nag_Stop_f == 1)
+            {
+                SpeedPID.Target = 0.0f;    // 1. 速度归零 (刹车)
+                TurnPID.Target = 0.0f;        // 2. 转向归零 (回正)
+                N.Nav_System_Run_Index = 0; // 3. 退出惯导状态机
+                
+                // (可选) 如果你想让车跑完直接“断电倒下”，取消注释下面这行
+                // balance_mode_active = 0; 
+                
+                // (可选) 蜂鸣器提示跑完了
+                // buzzer_on(1); 
+            }
+        }
+		else
+		{
+			Total_Encoder_L = 0;
+			Total_Encoder_R = 0;
 		}
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////// 任务二
@@ -331,6 +420,7 @@ void pit_handler (void)
 			}
 		}
 	}
+	
 }
 
 /**

@@ -141,8 +141,6 @@
 #include "PID.h"
 #include "Menu.h"
 #include "turn_control.h"
-#include "nav_flash.h"
-#include "Inertial_Navigation.h"
 #include "quaternion.h"
 
 //===================================================用户自定义文件===================================================

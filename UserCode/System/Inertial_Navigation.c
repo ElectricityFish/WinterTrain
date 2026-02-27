@@ -23,7 +23,7 @@ void Nag_Read()
                     flash_Nag_Save();  //写入最后一页，保证falsh存储满
                     N.End_f++;
                     break;
-            case 2://Buzzer_check(500);   //蜂鸣器确认执行
+            case 2:
                     N.End_f++;  //结束线程
                     break;
         }

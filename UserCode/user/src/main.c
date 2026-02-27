@@ -125,6 +125,8 @@ int main (void)
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
 	
+	quaternion_init();                                      // 初始化四元数模块,用于修正yaw角
+	
 	BludeSerial_Init();										//蓝牙初始化
 	
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,6 +191,14 @@ void pit_handler (void)
 		Count0 = 0;
 		
 		Get_Angle();
+		
+		// 调用四元数更新（内部会读取最新的陀螺仪数据并积分）
+		quaternion_update();
+		
+		// 获取四元数解算出的欧拉角（单位：度）
+		Quaternion *att = get_eular_angles();
+		yaw = att->yaw;
+		
 		SpeedLeft = Get_Count1();
 		SpeedRight = Get_Count2();
 		Encoder_Clear();

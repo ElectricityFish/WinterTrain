@@ -1342,6 +1342,16 @@
               <FileType>5</FileType>
               <FilePath>..\System\nav_flash.h</FilePath>
             </File>
+            <File>
+              <FileName>quaternion.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\quaternion.c</FilePath>
+            </File>
+            <File>
+              <FileName>quaternion.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\quaternion.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

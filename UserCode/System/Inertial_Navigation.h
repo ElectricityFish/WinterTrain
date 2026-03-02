@@ -12,7 +12,7 @@ extern float yaw;
 #define MaxSize 10000           //1cm记录一次，可以记录100m
 
 // 2. 里程计阈值
-#define Nag_Set_mileage 265     //小车行走1cm的编码器脉冲总数
+#define Nag_Set_mileage 28     //小车行走1cm的编码器脉冲总数
 
 //参数范围 <1 - 80>
 //#define Nag_End_Page 30      //flash中止页面

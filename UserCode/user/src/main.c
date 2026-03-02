@@ -10,6 +10,7 @@
 #include "turn_control.h"
 #include "Inertial_Navigation.h"
 #include "BlueSerial.h"
+#include "nav_flash.h"
 #include <math.h>
 
 /* ==============================================================================================
@@ -137,7 +138,7 @@ int main (void)
 	
 	BludeSerial_Init();										//蓝牙初始化
 	
-//	Init_Nag();
+	Init_Nag();
 	
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -145,6 +146,48 @@ int main (void)
 	{	
 		Prev_CarMode = CarMode;
 		CarMode = Menu_GetCurMode();
+		
+		// 检测模式变化
+		if (Prev_CarMode != CarMode) {
+			// 进入录制模式
+			if (CarMode == MODE_4_RECORD) {
+				// 清空路径缓冲区，重置记录索引
+				N.Save_index = 0;
+				N.Current_X = 0;
+				N.Current_Y = 0;
+				N.Mileage_All = 0;
+				N.End_f = 0;
+				N.Nag_Stop_f = 0;
+				memset(Nav_Record_Buffer, 0, sizeof(Nav_Record_Buffer));
+				// 启动录制状态机（状态1）
+				N.Nav_System_Run_Index = 1;
+			}
+			// 进入复现模式
+			else if (CarMode == MODE_4_REPLAY) {
+				// 从Flash加载路径
+				if (flash_load_nag()) {
+					N.Run_index = 0;
+					N.Current_X = 0;
+					N.Current_Y = 0;
+					N.Nag_Stop_f = 0;
+					// 启动复现状态机（状态2）
+					N.Nav_System_Run_Index = 2;
+				} else {
+					// 无有效路径数据，强制退出模式
+					Menu_SetRunningMode(IDLE);
+				}
+			}
+			// 退出录制模式时保存路径
+			else if (Prev_CarMode == MODE_4_RECORD && CarMode == IDLE) {
+				flash_save_nag();   // 将录制的路径存入Flash
+				N.Nav_System_Run_Index = 0;   
+			}
+			// 退出复现模式时只需停止状态机（路径已在Flash中）
+			else if (Prev_CarMode == MODE_4_REPLAY && CarMode == IDLE) {
+				N.Nav_System_Run_Index = 0;
+			}
+		}
+
 		if(key_get_state(KEY_2)) 
 		{
 			gyro_yaw = 0;
@@ -233,28 +276,27 @@ void pit_handler (void)
 //		}
 		switch(CarMode){
 			case MODE_1:
-				Balance_PIDControl();
-				break;
 			case MODE_2:
+			case MODE_3:
+			case MODE_5:
 				Balance_PIDControl();
 				break;
-			case MODE_3:
-				Balance_PIDControl();
+			case MODE_4_RECORD:
+				// 录制模式：确保电机停止，不执行平衡控制
+				Motor_SetPWM(1, 0);
+				Motor_SetPWM(2, 0);
+				SpeedPID.ErrorInt = 0;
+				SensorPID.ErrorInt = 0;
 				break;
 			case MODE_4_REPLAY:
-//				Motor_SetPWM(1, AvePWM);
-//				Motor_SetPWM(2, AvePWM);
-				SpeedPID.Out = 0;
-				Balance_PIDControl();
-				break;
-			case MODE_5:
+				// 复现模式需要平衡控制
 				Balance_PIDControl();
 				break;
 			default:
 				Motor_SetPWM(1, 0);
 				Motor_SetPWM(2, 0);
 				SpeedPID.ErrorInt = 0;
-			    SensorPID.ErrorInt = 0;
+				SensorPID.ErrorInt = 0;
 				break;
 		}
 		/*
@@ -285,6 +327,7 @@ void pit_handler (void)
 			// =========================================================
 			else if(N.Nav_System_Run_Index == 2)
 			{
+				
 				float nav_L = SpeedLeft;
 				float nav_R = SpeedRight;
 				
@@ -320,18 +363,17 @@ void pit_handler (void)
 			
 			Nag_System(); // 执行惯导核心 (10ms 一次)
 			
+			// 如果是复现模式，将惯导输出的转向量作为转向目标
+			if (CarMode == MODE_4_REPLAY) {
+				TurnPID.Target = N.Final_Out;
+			}
+			
 			if(N.Nag_Stop_f == 1)
             {
                 SpeedPID.Target = 0.0f;    // 1. 速度归零 (刹车)
                 TurnPID.Target = 0.0f;        // 2. 转向归零 (回正)
 				Menu_SetRunningMode(MODE_1);
-                N.Nav_System_Run_Index = 0; // 3. 退出惯导状态机
-                
-                // (可选) 如果你想让车跑完直接“断电倒下”，取消注释下面这行
-                // balance_mode_active = 0; 
-                
-                // (可选) 蜂鸣器提示跑完了
-                // buzzer_on(1); 
+                N.Nav_System_Run_Index = 0; // 3. 退出惯导状态机              
             }
         }
 		else

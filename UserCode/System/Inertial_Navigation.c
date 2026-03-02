@@ -13,7 +13,9 @@ extern PID_t SpeedPID;
 void Init_Nag(void)
 {
     memset(&N, 0, sizeof(N));
-    memset(Nav_Record_Buffer, 0, sizeof(Nav_Record_Buffer));	
+    memset(Nav_Record_Buffer, 0, sizeof(Nav_Record_Buffer));
+		
+	
 }
 
 // 路径记忆
@@ -142,9 +144,9 @@ void Run_Nag_GPS(void)
     if (N.Save_index > N.Run_index) 
     {
         // 1. 核心参数设定
-        float max_straight_speed = 100.0f; // 【参数】直道极限速度 (大胆往上提)
-        float min_corner_speed   = 80.0f; // 【参数】最急的弯允许的最低速度
-        float finish_min_speed   = 20.0f; // 【参数】终点冲线速度
+        float max_straight_speed = 4.0f; // 【参数】直道极限速度 (大胆往上提)
+        float min_corner_speed   = 2.0f; // 【参数】最急的弯允许的最低速度
+        float finish_min_speed   = 2.0f; // 【参数】终点冲线速度
         
         // 2. 弯道动态限速 (根据曲率计算)
         // 曲率越大(弯越急)，减速越多。50000.0f 是灵敏度系数，需根据实际曲率大小微调

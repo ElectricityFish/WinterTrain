@@ -4,7 +4,7 @@
 #include "zf_common_headfile.h"
 #include "Inertial_Navigation.h"
 
-void flash_Nag_Save(void);
-void flash_Nag_Read(void);
+void flash_save_nag(void);
+uint8_t flash_load_nag(void);
 
 #endif

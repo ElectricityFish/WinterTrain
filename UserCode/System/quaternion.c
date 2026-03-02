@@ -10,7 +10,7 @@
 #include <math.h>
 
 // 滤波器参数
-#define SAMPLE_TIME_MS    1.0f
+#define SAMPLE_TIME_MS    10.0f
 #define DEG_TO_RAD        0.017453292519943f
 
 static Quaternion attitude = {1.0f, 0.0f, 0.0f, 0.0f};

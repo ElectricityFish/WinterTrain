@@ -38,6 +38,8 @@ int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 int16_t turn_flag = 0;
 int16_t stop_flag = 0;
+float Plus_Left = 0;
+float Plus_Right = 0;
 
 float Total_Encoder_L = 0;
 float Total_Encoder_R = 0;
@@ -135,7 +137,7 @@ int main (void)
 	
 	BludeSerial_Init();										//蓝牙初始化
 	
-	Init_Nag();
+//	Init_Nag();
 	
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -184,7 +186,6 @@ void pit_handler (void)
 	} else {
 		SpeedPID.Ki = -1200.0 / 200.0f;
 	}
-
 	
 	if(Count1>=10)//每10ms进行一次按钮检测，和菜单更新，并从菜单获取最新参数
 	{
@@ -201,31 +202,60 @@ void pit_handler (void)
 		Get_Angle();
 		
 		// 调用四元数更新（内部会读取最新的陀螺仪数据并积分）
-		quaternion_update();
+//		quaternion_update();
 		
-		// 获取四元数解算出的欧拉角（单位：度）
-		Quaternion *att = get_eular_angles();
-		yaw = att->yaw;
+//		// 获取四元数解算出的欧拉角（单位：度）
+//		Quaternion *att = get_eular_angles();
+//		yaw = att->yaw;
 		
 		SpeedLeft = Get_Count1();
 		SpeedRight = Get_Count2();
 		Encoder_Clear();
 		
-		if(CarMode!=IDLE)
-		{
-			Balance_PIDControl();//直立PID控制函数，详见PID.c
-			
-//			if (Is_Angle_Turning())
-//			{
-//				Update_Angle_Turn();
-//			}
-		}
-		else
-		{
-			Motor_SetPWM(1,0);
-			Motor_SetPWM(2,0);
-			SpeedPID.ErrorInt = 0;
-			SensorPID.ErrorInt = 0;
+		Plus_Left += SpeedLeft;
+		Plus_Right += SpeedRight;
+		
+//		if(CarMode == MODE_1)
+//		{
+//			Balance_PIDControl();//直立PID控制函数，详见PID.c
+//			
+////			if (Is_Angle_Turning())
+////			{
+////				Update_Angle_Turn();
+////			}
+//		}
+//		else
+//		{
+//			Motor_SetPWM(1,0);
+//			Motor_SetPWM(2,0);
+//			SpeedPID.ErrorInt = 0;
+//			SensorPID.ErrorInt = 0;
+//		}
+		switch(CarMode){
+			case MODE_1:
+				Balance_PIDControl();
+				break;
+			case MODE_2:
+				Balance_PIDControl();
+				break;
+			case MODE_3:
+				Balance_PIDControl();
+				break;
+			case MODE_4_REPLAY:
+//				Motor_SetPWM(1, AvePWM);
+//				Motor_SetPWM(2, AvePWM);
+				SpeedPID.Out = 0;
+				Balance_PIDControl();
+				break;
+			case MODE_5:
+				Balance_PIDControl();
+				break;
+			default:
+				Motor_SetPWM(1, 0);
+				Motor_SetPWM(2, 0);
+				SpeedPID.ErrorInt = 0;
+			    SensorPID.ErrorInt = 0;
+				break;
 		}
 		/*
 		惯导的代码放在这，与yaw角的获取频率一致
@@ -253,7 +283,7 @@ void pit_handler (void)
 			// =========================================================
 			// 【模式 3：复现模式 (Replay)】- 开启双重防打滑保护
 			// =========================================================
-			else if(N.Nav_System_Run_Index == 3)
+			else if(N.Nav_System_Run_Index == 2)
 			{
 				float nav_L = SpeedLeft;
 				float nav_R = SpeedRight;
@@ -294,6 +324,7 @@ void pit_handler (void)
             {
                 SpeedPID.Target = 0.0f;    // 1. 速度归零 (刹车)
                 TurnPID.Target = 0.0f;        // 2. 转向归零 (回正)
+				Menu_SetRunningMode(MODE_1);
                 N.Nav_System_Run_Index = 0; // 3. 退出惯导状态机
                 
                 // (可选) 如果你想让车跑完直接“断电倒下”，取消注释下面这行
@@ -420,7 +451,17 @@ void pit_handler (void)
 			}
 		}
 	}
-	
+///////////////////////////////////////任务4////////////////////////////////
+	if(CarMode == MODE_4_RECORD)
+	{
+		Motor_SetPWM(1,0);
+		Motor_SetPWM(2,0);
+		N.Nav_System_Run_Index = 1;
+	}
+	else if(CarMode == MODE_4_REPLAY)
+	{
+		N.Nav_System_Run_Index = 2;
+	}
 }
 
 /**

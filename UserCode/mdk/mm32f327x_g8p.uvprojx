@@ -1352,6 +1352,16 @@
               <FileType>5</FileType>
               <FilePath>..\System\quaternion.h</FilePath>
             </File>
+            <File>
+              <FileName>track3.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\track3.c</FilePath>
+            </File>
+            <File>
+              <FileName>track3.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\track3.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

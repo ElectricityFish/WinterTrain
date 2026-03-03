@@ -78,7 +78,7 @@ void Run_Nag_GPS(void)
     // 设基础预瞄为 25cm，速度越快看得越远
 //	float L_distance = 3.0f + current_speed * 0.13f;
     float L_distance = 3.0f + current_speed * 12.0f; 
-    if(L_distance > 80.0f) L_distance = 80.0f; // 最多看前方 80cm
+    if(L_distance > 50.0f) L_distance = 50.0f; // 最多看前方 80cm
     
     // 算力优化：提前算好平方，下面比对时就不需要开根号了
     float L_dist_sq = L_distance * L_distance; 
@@ -149,9 +149,9 @@ void Run_Nag_GPS(void)
     if (N.Save_index > N.Run_index) 
     {
         // 1. 核心参数设定
-        float max_straight_speed = 10.0f; // 【参数】直道极限速度 (大胆往上提)
-        float min_corner_speed   = 1.0f; // 【参数】最急的弯允许的最低速度
-        float finish_min_speed   = 2.0f; // 【参数】终点冲线速度
+        float max_straight_speed = 20.0f; // 【参数】直道极限速度 (大胆往上提)
+        float min_corner_speed   = 3.0f;  // 【参数】最急的弯允许的最低速度
+        float finish_min_speed   = 2.0f;  // 【参数】终点冲线速度
         
         // 2. 弯道动态限速 (根据曲率计算)
         // 曲率越大(弯越急)，减速越多。50000.0f 是灵敏度系数，需根据实际曲率大小微调

@@ -54,11 +54,14 @@ extern int cur_track_state;
 uint8_t previouscur_track_state;	    //记录上一时刻的循迹状态，用于任务二的声光提示
 uint8_t onLinePromoptFlag=0;			//用于任务二的声光提示
 
-//任务三相关标志位
-#define  TASK3_TURN_ANGLE          43   //每次转动的角度
-uint8_t task3_stop_flag = 0;            //完成标志位，用于判断小车是否跑完四圈
-uint8_t task3_direction_flag = 1;       //方向标志位，1->逆时针,-1->顺时针
-uint8_t task3_mode_flag = 0;            //模式切换标志位, 0->任务三循迹, 1->任务一停车
+//任务二相关标志位
+int8_t track2_flag = 0;
+
+//任务三相关标志位引用
+extern int8_t track3_flag;          //0->循迹   1->直走
+extern int8_t track3_turn_flag;     //转向标志位
+extern int8_t track3_end_flag;      //结束标志位
+extern int8_t track3_dir_flag;     //转向方向
 
 PID_t AnglePID={
 	.Kp=660.0,
@@ -95,7 +98,7 @@ PID_t TurnPID={
 };
 
 PID_t SensorPID = {
-    .Kp         = 8.5f,
+    .Kp         = 9.5f,
     .Ki         = 0.0f,
     .Kd         = 7.5f,
 
@@ -195,6 +198,16 @@ int main (void)
 			speed = 3.0f;
 			yaw_offset = 0;
 		}
+		//转向环测试
+//		if(key_get_state(KEY_3))
+//		{
+//			Start_Angle_Turn(47);
+//		}
+//		
+//		if(key_get_state(KEY_4))
+//		{
+//			Start_Angle_Turn(-47);
+//		}
 		
 		//蓝牙遥控代码
 		if(CarMode==MODE_5)
@@ -262,7 +275,10 @@ void pit_handler (void)
 		if(CarMode != IDLE)
 		{
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
-
+//			if (Is_Angle_Turning())
+//			{
+//				Update_Angle_Turn();
+//			}
 		}
 		else
 		{
@@ -405,7 +421,7 @@ void pit_handler (void)
 				}
 			}
 			// 持续断线状态
-			else if (cur_track_state == 2) 
+			else if (cur_track_state == 0) 
 			{
 				TurnPID.Target = 0.0f;
 				SensorPID.Ki = 0.0f;
@@ -431,10 +447,26 @@ void pit_handler (void)
 		
 		if(CarMode == MODE_3)
 		{		
+			// 保存之前的循迹状态
+			previouscur_track_state = cur_track_state;
+			// 更新传感器状态
+			Sensor_PIDControl();
 			// 任务3的声光提示
 			if(previouscur_track_state != cur_track_state) {
 				onLinePromoptFlag = 1;
+				
+				track3_flag = !track3_flag;
+				track3_turn_flag = (track3_turn_flag + 1) % 4;
+				if(track3_turn_flag == 1 || track3_turn_flag == 3)
+				{
+					track3_dir_flag = -track3_dir_flag;
+					Start_Angle_Turn(track3_dir_flag * TRACK3_TURN_ANGLE);
+				}		
+				track3_end_flag ++;
+				
+				Distance_Init();			
 			}
+			
 			TaskTwoPromopt();
 			
 			Track3_Start();
@@ -502,12 +534,12 @@ void TaskTwoPromopt(void)								//任务二提示函数
 		PromoptCount=20;
 		onLinePromoptFlag=0;
 	}
-		if(PromoptCount>0)
-		{
-			Promopt();
-			PromoptCount--;
-		}else{
-			StopPromopt();
-		}
+	if(PromoptCount>0)
+	{
+		Promopt();
+		PromoptCount--;
+	}else{
+		StopPromopt();
+	}
 		
 }

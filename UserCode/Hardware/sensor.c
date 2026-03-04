@@ -112,15 +112,41 @@ extern float yaw;
  * @return 0表示正常，1表示卡车丢失
  */
 int Sensor_CheckTrack(void)      // 0->黑线  1->白线
-{
-//    static int lost_flag = 0;  // 断线标志
-//    static int lost_counter = 0;  // 断线计数器
+{   
+//    if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4) {
+//        return 1;
+//    } 
+//	else 
+//	{
+//		return 0;
+//	}	
+	static int lost_flag = 0;  // 断线标志
+    static int lost_counter = 0;  // 断线计数器
     
     if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4) {
-        return 1;
+        lost_counter++;
     } 
 	else 
 	{
-		return 0;
-	}
+        // 重新检测到线，重置状态
+        lost_counter = 0;
+        lost_flag = 0;
+    }
+    
+    // 连续10次（100ms）检测到全白
+    if (lost_counter >= 4) {
+        if (lost_flag == 0) 
+		{
+            // 第一次检测到断线
+            lost_flag = 1;
+            yaw_offset = 0;
+            return 1;  // 返回1表示刚断线
+        } 
+		else 
+		{
+            return 2;  // 返回2表示持续断线
+        }
+    } else {
+        return 0;  // 正常
+    }
 }

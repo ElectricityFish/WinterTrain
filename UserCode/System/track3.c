@@ -1,7 +1,7 @@
 #include "zf_common_headfile.h"
 #include "track3.h"
 
-//#define TRACK3_TURN_ANGLE     47  //转动角度，稍大一点
+//#define TRACK3_TURN_ANGLE     48  //转动角度，稍大一点
 #define LEFT_PLUS_TO_CM       (6.8  * 3.1415926f / 257)
 #define RIGHT_PLUS_TO_CM      (6.8  * 3.1415926f / 293)
 
@@ -79,7 +79,7 @@ void Track3_Start()
 				{
 					SpeedPID.Target = 2.0f;    //稍微降速
 				}
-				else if(distance_track3 >= 130)   //快要到时转回直线
+				else if(distance_track3 >= 131)   //快要到时转回直线
 				{
 					SpeedPID.Target = 1.5f;	
 					Start_Angle_Turn(-track3_dir_flag * TRACK3_TURN_ANGLE);

@@ -49,6 +49,7 @@ static float Last_SpeedLeft = 0;
 static float Last_SpeedRight = 0;
 
 //循迹需要
+extern int cur_track_state;
 extern double speed;
 extern int cur_track_state;
 uint8_t previouscur_track_state;	    //记录上一时刻的循迹状态，用于任务二的声光提示
@@ -142,7 +143,7 @@ int main (void)
 	
 	BludeSerial_Init();										//蓝牙初始化
 	
-	Init_Nag();
+	Init_Nag();                                             //惯导初始化
 	
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -234,9 +235,7 @@ void pit_handler (void)
 	Count0++;
 	Count1++;
 	Count2++;
-	Count3++;
-	
-	system_time_ms++;  // 增加系统时间
+	Count3++;	
 	
 	if (CarMode == MODE_2) {
 		SpeedPID.Ki = 0.0f;
@@ -442,9 +441,8 @@ void pit_handler (void)
 	if(Count3 >= 18)  // 每10ms执行一次
 	{
 		Count3 = 8;
-		
 		Distance_Cal();
-		
+
 		if(CarMode == MODE_3)
 		{		
 			// 保存之前的循迹状态
@@ -452,7 +450,9 @@ void pit_handler (void)
 			// 更新传感器状态
 			Sensor_PIDControl();
 			// 任务3的声光提示
-			if(previouscur_track_state != cur_track_state) {
+			TaskTwoPromopt();
+			
+			if(cur_track_state == 1) {
 				onLinePromoptFlag = 1;
 				
 				track3_flag = !track3_flag;
@@ -466,9 +466,6 @@ void pit_handler (void)
 				
 				Distance_Init();			
 			}
-			
-			TaskTwoPromopt();
-			
 			Track3_Start();
 		}
 	}

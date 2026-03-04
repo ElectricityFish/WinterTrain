@@ -1,3 +1,4 @@
+#include "zf_common_headfile.h"
 #ifndef __TASKTWO_H
 #define __TASKTWO_H
 
@@ -8,12 +9,7 @@
  */
 void TaskTwoRun(void);
 
-/**
- * @brief 任务二提示函数
-* @note 功能：进行声光提示
- * @return 无
- */
-void TaskTwoPromopt(void);
+extern uint8_t onLinePromoptFlag;			//用于任务二的声光提示
 
 #endif
 

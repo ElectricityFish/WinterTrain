@@ -1,3 +1,4 @@
+#include "zf_common_headfile.h"
 #ifndef __PID_H
 #define __PID_H
 
@@ -36,5 +37,7 @@ extern int cur_track_state;    // 0-正常, 1-刚断线, 2-持续断线
 void PID_Update(PID_t *p);					//一般PID函数
 void Balance_PIDControl(void);				//角度环PID函数
 void Sensor_PIDControl(void);				//循迹PID函数，至于为啥不叫Trace，这是个历史遗留问题（哭）
+
+void Yaw_PIDControl(uint8_t runflag);       //yaw角闭环
 
 #endif

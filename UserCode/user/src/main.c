@@ -38,6 +38,7 @@ float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 int16_t turn_flag = 0;
+uint8_t previouscur_track_state=0;//用于声光提示
 
 
 
@@ -85,6 +86,7 @@ PID_t SensorPID = {
     .OutMin     = -10000.0f,
 };
 
+//参数应该是负的
 PID_t yawPID = {
     .Kp         = 0.0f,
     .Ki         = 0.0f,
@@ -101,6 +103,7 @@ PID_t yawPID = {
                                         函数声明
    ============================================================================================== */
 
+void TaskPromopt(void);	//声光提示函数	
 void Menu_UpDate(void); //封装后的菜单更新函数
 
 /* ==============================================================================================
@@ -219,8 +222,9 @@ void pit_handler (void)
 	if(Count2 >= 15)
 	{
 		Count2 = 0;
+		previouscur_track_state=cur_track_state;
 		Sensor_PIDControl();
-		TaskTwoPromopt();
+		TaskPromopt();
 		
 		
 		if(CarMode == MODE_2)
@@ -272,4 +276,32 @@ void Menu_UpDate(void)
 //	SensorPID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
 	   
 }
+
+
+/**
+ * @brief 提示函数
+ * @note 功能：进行声光提示
+ * @return 无
+ */
+void TaskPromopt(void)								
+{
+	static uint8_t PromoptFlag=0;
+	static uint8_t PromoptCount=0;
+	
+	if(onLinePromoptFlag==1)
+	{
+		PromoptCount=20;
+		onLinePromoptFlag=0;
+	}
+	
+	if(PromoptCount>0)
+	{
+		Promopt();
+		PromoptCount--;
+	}else{
+		StopPromopt();
+	}
+		
+}
+
 

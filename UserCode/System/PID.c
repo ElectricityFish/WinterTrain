@@ -105,7 +105,7 @@ void Balance_PIDControl(void)
 extern PID_t SensorPID;
 extern double yaw_offset;
 int sign = 1;
-float speed = 1.5f;
+float speed = 2.0f;
 
 int cur_track_state = 0;	// 这么搞主要是为了检测跳变
 
@@ -150,16 +150,13 @@ void Sensor_PIDControl(void)
 extern PID_t yawPID;
 void Yaw_PIDControl(uint8_t runflag)
 {
-	
 	if(runflag==1)
 	{
+		yawPID.Actual=yaw;
 		PID_Update(&yawPID);
-		TurnPID.Target=yawPID.Out;
 	}else{
 		yawPID.Out=0;
 	}
-	
-	
 }
 
 

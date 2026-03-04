@@ -54,7 +54,6 @@ extern PID_t TurnPID;
 extern float SpeedLeft,SpeedRight;
 extern float AveSpeed,DifSpeed;
 extern boot_mode CarMode;
-extern float gyro_yaw;
 
 void Balance_PIDControl(void)
 {
@@ -106,7 +105,7 @@ void Balance_PIDControl(void)
 extern PID_t SensorPID;
 extern double yaw_offset;
 int sign = 1;
-double speed = 2.0f;
+float speed = 1.5f;
 
 int cur_track_state = 0;	// 这么搞主要是为了检测跳变
 
@@ -139,3 +138,32 @@ void Sensor_PIDControl(void)
 //        TurnPID.Target = 0;
     }
 }
+
+
+/** 
+ * @brief YAW角闭环
+ * @note用于控制小车在特定的YAW角下直行
+ * @note在任务二运行时经过特殊点时YAW角会清0
+ * @note参数表示是否运行，不运行时会在函数里进行对参数的操作（如清0）.1运行，0停止
+ * @return 无返回值，运行时进行调控
+ */
+extern PID_t yawPID;
+void Yaw_PIDControl(uint8_t runflag)
+{
+	
+	if(runflag==1)
+	{
+		PID_Update(&yawPID);
+		TurnPID.Target=yawPID.Out;
+	}else{
+		yawPID.Out=0;
+	}
+	
+	
+}
+
+
+
+
+
+

@@ -1332,6 +1332,16 @@
               <FileType>5</FileType>
               <FilePath>..\System\Inertial_Navigation.h</FilePath>
             </File>
+            <File>
+              <FileName>TaskTwo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\TaskTwo.c</FilePath>
+            </File>
+            <File>
+              <FileName>TaskTwo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\TaskTwo.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

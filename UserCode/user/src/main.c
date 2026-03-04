@@ -10,6 +10,8 @@
 #include "turn_control.h"
 #include "Inertial_Navigation.h"
 #include "BlueSerial.h"
+#include "TaskTwo.h"
+
 
 /* ==============================================================================================
                                         全局变量声明
@@ -36,13 +38,8 @@ float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 int16_t turn_flag = 0;
-int16_t stop_flag = 0;
 
-//循迹需要
-extern double speed;
-extern int cur_track_state;
-uint8_t previouscur_track_state;	//记录上一时刻的循迹状态，用于任务二的声光提示
-uint8_t onLinePromoptFlag=0;			//用于任务二的声光提示
+
 
 PID_t AnglePID={
 	.Kp=660.0,
@@ -87,13 +84,23 @@ PID_t SensorPID = {
     .OutMax     = 10000.0f,
     .OutMin     = -10000.0f,
 };
+
+PID_t yawPID = {
+    .Kp         = 0.0f,
+    .Ki         = 0.0f,
+    .Kd         = 0.0f,
+
+	.Target     = 0.0f,
+    .OutMax     = 0.0f,
+    .OutMin     = 0.0f,
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* ==============================================================================================
                                         函数声明
    ============================================================================================== */
 
-void TaskTwoPromopt(void);								//任务二提示函数
 void Menu_UpDate(void); //封装后的菜单更新函数
 
 /* ==============================================================================================
@@ -127,10 +134,11 @@ int main (void)
 	{	
 		Prev_CarMode = CarMode;
 		CarMode = Menu_GetCurMode();
+		
+		//按键二重置yaw角
 		if(key_get_state(KEY_2)) 
 		{
 			gyro_yaw = 0;
-			speed = 3.0f;
 			yaw_offset = 0;
 		}
 		
@@ -161,14 +169,19 @@ void pit_handler (void)
 	
 	system_time_ms++;  // 增加系统时间
 	
+	
+	//运动时KI会影响稳定
 	if (CarMode == MODE_2) {
 		SpeedPID.Ki = 0.0f;
+		SpeedPID.ErrorInt=0;
 	} else {
 		SpeedPID.Ki = -1200.0 / 200.0f;
 	}
 
 	
-	if(Count1>=10)//每10ms进行一次按钮检测，和菜单更新，并从菜单获取最新参数
+	
+	//每10ms进行一次按钮检测，和菜单更新，并从菜单获取最新参数
+	if(Count1>=10)
 	{
 		Count1 = 0;
 
@@ -176,7 +189,7 @@ void pit_handler (void)
 		Menu_JustRefreshValue();
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////// 姿态解算，角度环控制
-	if (Count0 >= 10) // 每10ms进行一次姿态解算，和平衡态控制
+	if (Count0 >= 10)// 每10ms进行一次姿态解算，和平衡态控制
 	{
 		Count0 = 0;
 		
@@ -188,7 +201,7 @@ void pit_handler (void)
 		if(CarMode!=IDLE)
 		{
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
-			
+			//
 			if (Is_Angle_Turning())
 			{
 				Update_Angle_Turn();
@@ -206,45 +219,17 @@ void pit_handler (void)
 	if(Count2 >= 15)
 	{
 		Count2 = 0;
-		previouscur_track_state=cur_track_state;
 		Sensor_PIDControl();
 		TaskTwoPromopt();
 		
 		
 		if(CarMode == MODE_2)
 		{
-			// 刚检测到断线
-			if (cur_track_state == 1) 
-			{
-				stop_flag ++;
-				gyro_yaw = 0.0f;
-				TurnPID.Target = 0.0f;
-				SensorPID.Ki = 0.0f;
-				
-				if(stop_flag == 3)
-				{
-					SpeedPID.Target  = 0.0f;
-					Menu_SetRunningMode(MODE_1);
-				}
-			}
-			// 持续断线状态
-			else if (cur_track_state == 2) 
-			{
-				TurnPID.Target = 0.0f;
-				SensorPID.Ki = 0.0f;
-			}
-			// 正常状态
-			else
-			{
-				TurnPID.Target = SensorPID.Out;
-				SensorPID.Ki = 0.0f;
-			}
-			
-			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
-				
+		TaskTwoRun();
 		}
-		
 	}
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	
 }
 
@@ -287,29 +272,4 @@ void Menu_UpDate(void)
 //	SensorPID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
 	   
 }
-
-void TaskTwoPromopt(void)								//任务二提示函数
-{
-	static uint8_t PromoptFlag=0;
-	static uint8_t PromoptCount=0;
-	
-	if(onLinePromoptFlag==1)
-	{
-		PromoptCount=20;
-		onLinePromoptFlag=0;
-	}
-	
-
-		
-		if(PromoptCount>0)
-		{
-			Promopt();
-			PromoptCount--;
-		}else{
-			StopPromopt();
-		}
-		
-}
-
-
 

@@ -49,25 +49,25 @@ PID_t AnglePID={
 	
 	.OutOffset=0.0,	// 输出偏移值,让电机动起来的最小PWM
 	.Target = 0.0f,
-	.OutMax=10000,
-	.OutMin=-10000,
+	.OutMax=8000,
+	.OutMin=-8000,
 
 };
 
 PID_t SpeedPID={	
 	.Kp=-1200,
-	.Ki=-1200.0 / 200.0,
+	.Ki=-6.0,
 	.Kd=0.0,
 	
 	.Target=0.0f,
-	.OutMax=10000,
-	.OutMin=-10000,
+	.OutMax=8000,
+	.OutMin=-8000,
 	
 };
 
 PID_t TurnPID={
-	.Kp=-2500.0,
-	.Ki=0.0f,
+	.Kp=-2000.0,
+	.Ki=-5.f,
 	.Kd=0.0,
 	
 	.Target=0.0f,
@@ -86,16 +86,6 @@ PID_t SensorPID = {
     .OutMin     = -10000.0f,
 };
 
-//参数应该是负的
-PID_t yawPID = {
-    .Kp         = 0.0f,
-    .Ki         = 0.0f,
-    .Kd         = 0.0f,
-
-	.Target     = 0.0f,
-    .OutMax     = 0.0f,
-    .OutMin     = 0.0f,
-};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -168,7 +158,7 @@ void pit_handler (void)
 	static uint8_t Count2=2;
 	Count0++;
 	Count1++;
-	Count2++;
+
 	
 	system_time_ms++;  // 增加系统时间
 	
@@ -218,20 +208,29 @@ void pit_handler (void)
 			SensorPID.ErrorInt = 0;
 		}
 	}
+	
+
+	TaskPromopt();//任务二三的提示函数
 ///////////////////////////////////////////////////////////////////////////////////////////////// 任务二
-	if(Count2 >= 15)
+	if(CarMode == MODE_2)
 	{
-		Count2 = 0;
-		previouscur_track_state=cur_track_state;
-		Sensor_PIDControl();
-		TaskPromopt();
-		
-		
-		if(CarMode == MODE_2)
+		Count2++;
+		SpeedPID.Target=3.0;
+		//可变参数
+		SpeedPID.Ki=-0.5;
+		AnglePID.Kd=2000.0;
+		if(Count2 >= 15)
 		{
-		TaskTwoRun();
+			Count2 = 0;
+			previouscur_track_state=cur_track_state;
+			Sensor_PIDControl();
+			TaskTwoRun();
 		}
-	}
+		
+	}else{
+			SpeedPID.Ki=-6.0;
+			AnglePID.Kd=1700.0;
+		}
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	
@@ -290,7 +289,7 @@ void TaskPromopt(void)
 	
 	if(onLinePromoptFlag==1)
 	{
-		PromoptCount=20;
+		PromoptCount=250;
 		onLinePromoptFlag=0;
 	}
 	
@@ -300,8 +299,7 @@ void TaskPromopt(void)
 		PromoptCount--;
 	}else{
 		StopPromopt();
-	}
-		
+	}		
 }
 
 

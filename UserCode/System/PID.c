@@ -21,8 +21,8 @@ void PID_Update(PID_t *p)			// 一般PID函数
 		p->ErrorInt = 0;
 	}
 	
-	if(p->ErrorInt>=p->OutMax/2)p->ErrorInt=p->OutMax/2.f;	// 积分限幅
-	if(p->ErrorInt<=p->OutMin/2)p->ErrorInt=p->OutMin/2.f;
+	if(p->ErrorInt>=p->OutMax/2)p->ErrorInt=p->OutMax/5.f;	// 积分限幅
+	if(p->ErrorInt<=p->OutMin/2)p->ErrorInt=p->OutMin/5.f;
 	
 	
 	p->Out = p->Kp * p->Error0
@@ -105,7 +105,6 @@ void Balance_PIDControl(void)
 extern PID_t SensorPID;
 extern double yaw_offset;
 int sign = 1;
-float speed = 2.0f;
 
 int cur_track_state = 0;	// 这么搞主要是为了检测跳变
 
@@ -115,7 +114,7 @@ void Sensor_PIDControl(void)
 
     static int yaw_offset_counter = 0;
     yaw_offset_counter++;
-    if (yaw_offset_counter > 100) {
+    if (yaw_offset_counter > 100)  {
         yaw_offset = Sensor_GetSensorError();
         yaw_offset_counter = 0;
     }
@@ -127,9 +126,7 @@ void Sensor_PIDControl(void)
     if (cur_track_state == 0) {
         SensorPID.Actual = (float)Sensor_ComplementaryFilteredError(0.9f);
         PID_Update(&SensorPID);
-        
         TurnPID.Target = SensorPID.Out;
-        SpeedPID.Target = speed;
     }
     // 断线状态下，保持上一次的PID输出或清零
     else {
@@ -138,29 +135,5 @@ void Sensor_PIDControl(void)
 //        TurnPID.Target = 0;
     }
 }
-
-
-/** 
- * @brief YAW角闭环
- * @note用于控制小车在特定的YAW角下直行
- * @note在任务二运行时经过特殊点时YAW角会清0
- * @note参数表示是否运行，不运行时会在函数里进行对参数的操作（如清0）.1运行，0停止
- * @return 无返回值，运行时进行调控
- */
-extern PID_t yawPID;
-void Yaw_PIDControl(uint8_t runflag)
-{
-	if(runflag==1)
-	{
-		yawPID.Actual=yaw;
-		PID_Update(&yawPID);
-	}else{
-		yawPID.Out=0;
-	}
-}
-
-
-
-
 
 

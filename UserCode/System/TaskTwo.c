@@ -42,11 +42,13 @@ void TaskTwoRun(void)
 	// 持续断线状态，直行
 	else if (cur_track_state == 2) 
 	{
+		SpeedPID.Target=4.0;
 		TurnPID.Target = 0;
 	}
 	//正常状态
 	else
 	{
+		SpeedPID.Target=2.5;
 		TurnPID.Target = SensorPID.Out;
 		SensorPID.Ki = 0.0f;
 	}

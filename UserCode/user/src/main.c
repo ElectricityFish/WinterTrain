@@ -134,12 +134,23 @@ int main (void)
 			gyro_yaw = 0;
 			yaw_offset = 0;
 		}
-		
-		//蓝牙遥控代码
+/////////////////////////////////////////////////////////////////////////////////蓝牙遥控代码
+		uint8_t BlueControlflag=0;
 		if(CarMode==MODE_5)
 		{
+			BlueControlflag=1;
+			SpeedPID.Ki=-0.5;
+			AnglePID.Kd=2000.0;
 			BlueSerial_Control(&SpeedPID.Target,&TurnPID.Target);
+		}else{
+			if(BlueControlflag==1)
+			{
+				SpeedPID.Ki=-6.0;
+				AnglePID.Kd=1700.0;
+				BlueControlflag=0;
+			}
 		}
+/////////////////////////////////////////////////////////////////////////////////////////
 		
 	}
 }
@@ -215,7 +226,7 @@ void pit_handler (void)
 	if(CarMode == MODE_2)
 	{
 		Count2++;
-		SpeedPID.Target=3.0;
+		//SpeedPID.Target=2.5;
 		//可变参数
 		SpeedPID.Ki=-0.5;
 		AnglePID.Kd=2000.0;

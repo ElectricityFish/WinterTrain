@@ -16,7 +16,7 @@ extern PID_t TurnPID;
 extern PID_t SensorPID;
 
 int8_t track3_flag = 0;          //0->循迹   1->直走
-int8_t track3_turn_flag = 0;     //转向标志位
+//int8_t track3_turn_flag = 0;     //转向标志位
 int8_t track3_end_flag = 0;      //结束标志位
 int8_t track3_dir_flag = -1;     //转向方向
 
@@ -61,7 +61,7 @@ void Track3_Start()
 	switch(track3_flag){
 		//循迹
 		case 0:
-			SpeedPID.Target = 2.0f;    //?
+			SpeedPID.Target = 2.0f;    
 			TurnPID.Target = 0.0f;
 			SensorPID.Ki = 0.0f;					
 			break;
@@ -75,14 +75,17 @@ void Track3_Start()
 				{
 					SpeedPID.Target = 2.5f;   //提速冲刺
 				}
-				else if(distance_track3 > 100 && distance_track3 <= 129)
+				else if(distance_track3 > 100 && distance_track3 <= 128)
 				{
 					SpeedPID.Target = 2.0f;    //稍微降速
 				}
-				else if(distance_track3 >= 131)   //快要到时转回直线
+				else if(distance_track3 >= 129)   //快要到时转回直线
 				{
 					SpeedPID.Target = 1.5f;	
 					Start_Angle_Turn(-track3_dir_flag * TRACK3_TURN_ANGLE);
+//					track3_flag = !track3_flag;
+//					track3_turn_flag = (track3_turn_flag + 1) % 4;
+//					track3_end_flag ++;
 					Distance_Init();
 				}
 			}
@@ -90,10 +93,10 @@ void Track3_Start()
 		}
 	
 	//四圈绕8字完成标志
-	if(track3_end_flag == 17)
+	if(track3_end_flag >= 17)
 	{
 		track3_flag = 0;
-		track3_turn_flag = 0;
+//		track3_turn_flag = 0;
 		track3_dir_flag = -1;
 		track3_end_flag = 0; 
 		SpeedPID.Target = 0.0f;

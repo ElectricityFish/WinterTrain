@@ -66,7 +66,10 @@ static void AnglePositionPID_Update(Angle_Position_PID *pid)
 //使用方法：根据其他任务标志位在main中的while调用Start_Angle_Turn(30);
 void Start_Angle_Turn(float angle)
 {
-    if (is_angle_turning) return; // 如果已经在转向中，直接返回
+    if (is_angle_turning)
+    {
+        Stop_Angle_Turn();
+    }
     
     is_angle_turning = 1;
     target_angle_increment = angle;

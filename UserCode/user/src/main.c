@@ -196,7 +196,7 @@ int main (void)
 		if(key_get_state(KEY_2)) 
 		{
 			gyro_yaw = 0;
-			speed = 3.0f;
+			speed = 2.0f;
 			yaw_offset = 0;
 		}
 		//转向环测试
@@ -271,7 +271,7 @@ void pit_handler (void)
 		Plus_Left += SpeedLeft;
 		Plus_Right += SpeedRight;
 		
-		if(CarMode != IDLE)
+		if(CarMode != IDLE && CarMode != MODE_4_RECORD)
 		{
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
 //			if (Is_Angle_Turning())
@@ -401,8 +401,7 @@ void pit_handler (void)
 		previouscur_track_state=cur_track_state;
 		Sensor_PIDControl();
 		TaskTwoPromopt();
-		
-		
+				
 		if(CarMode == MODE_2)
 		{
 			// 刚检测到断线
@@ -451,22 +450,23 @@ void pit_handler (void)
 			Sensor_PIDControl();
 			// 任务3的声光提示
 			TaskTwoPromopt();
-			
-			if(cur_track_state == 1) {
-				onLinePromoptFlag = 1;
-				
+			//黑线进白线
+			if(previouscur_track_state!=cur_track_state) {				
 				track3_flag = !track3_flag;
-				track3_turn_flag = (track3_turn_flag + 1) % 4;
-				if(track3_turn_flag == 1 || track3_turn_flag == 3)
+//				track3_turn_flag = (track3_turn_flag + 1) % 4;
+//				track3_turn_flag = !track3_turn_flag;
+				if(track3_flag)
 				{
 					track3_dir_flag = -track3_dir_flag;
 					Start_Angle_Turn(track3_dir_flag * TRACK3_TURN_ANGLE);
-				}		
+				}	
 				track3_end_flag ++;
-				
-				Distance_Init();			
+				Distance_Init();
+				onLinePromoptFlag=1;
 			}
 			Track3_Start();
+			//任务三声光判定
+//			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
 		}
 	}
 ///////////////////////////////////////任务4////////////////////////////////

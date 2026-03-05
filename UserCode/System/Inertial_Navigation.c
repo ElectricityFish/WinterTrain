@@ -14,8 +14,6 @@ void Init_Nag(void)
 {
     memset(&N, 0, sizeof(N));
     memset(Nav_Record_Buffer, 0, sizeof(Nav_Record_Buffer));
-		
-	
 }
 
 // 路径记忆
@@ -139,7 +137,7 @@ void Run_Nag_GPS(void)
     float curvature = 2.0f * e_lat / (L_actual * L_actual);
     
     // ★ 核心修复 2：因为 L 放大了，L的平方放大了几十倍，这里的系数也要相应增加，保证转向力
-    N.Final_Out = curvature * 150.0f;   //这里可能是一个要根据实际进行调整的参数
+    N.Final_Out = curvature * 1500.0f;   //这里可能是一个要根据实际进行调整的参数
 
     float max_turn = 50.0f; 
     if(N.Final_Out > max_turn)  N.Final_Out = max_turn;

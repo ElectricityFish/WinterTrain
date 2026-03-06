@@ -14,6 +14,7 @@ extern float Plus_Right;
 extern PID_t SpeedPID;
 extern PID_t TurnPID;
 extern PID_t SensorPID;
+extern PID_t AnglePID;
 
 int8_t track3_flag = 0;          //两边有点区别，用这个标志位来判断
 int8_t track3_end_flag = 0;      //结束标志位
@@ -81,11 +82,11 @@ void Track3_Start()
 				{
 					SpeedPID.Target = 3.0f;   //提速冲刺
 				}
-				else if(distance_track3 > 100 && distance_track3 <= 128)
+				else if(distance_track3 > 100 && distance_track3 < 130)
 				{
 					SpeedPID.Target = 2.5f;    //稍微降速
 				}
-				else if(distance_track3 >= 129)   //快要到时转回直线
+				else if(distance_track3 >= 130)   //快要到时转回直线
 				{
 					SpeedPID.Target = 2.0f;	
 					Start_Angle_Turn(-track3_dir_flag * TRACK3_TURN_ANGLE1);

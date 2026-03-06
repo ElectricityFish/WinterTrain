@@ -442,7 +442,7 @@ void pit_handler (void)
 	if(CarMode == MODE_3)  // 每10ms执行一次
 	{
 		Count3 ++;
-
+	
 		if(Count3 >= 18)
 		{
 			Count3 = 3;

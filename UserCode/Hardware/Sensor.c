@@ -138,7 +138,7 @@ int Sensor_CheckTrack(void)
 		{
             return 2;  // 返回2表示持续断线
         }
-    } else {
+    }else {
         return 0;  // 正常
     }
 }

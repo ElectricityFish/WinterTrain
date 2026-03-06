@@ -50,7 +50,6 @@ void TaskTwoRun(void)
 	{
 		SpeedPID.Target=2.5;
 		TurnPID.Target = SensorPID.Out;
-		SensorPID.Ki = 0.0f;
 	}
 	
 	//判断是否提示

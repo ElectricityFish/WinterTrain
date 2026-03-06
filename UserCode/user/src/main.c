@@ -11,9 +11,12 @@
 #include "Inertial_Navigation.h"
 #include "BlueSerial.h"
 #include "nav_flash.h"
-#include "track3.h"
+//#include "track3.h"
 #include <math.h>
 #include "TaskTwo.h"
+#include "TaskThree.h"
+
+
 
 /* ==============================================================================================
                                         全局变量声明
@@ -89,7 +92,7 @@ PID_t SpeedPID={
 
 PID_t TurnPID={
 	.Kp=-2500.0,
-	.Ki=0.0f,
+	.Ki=-5.0f,
 	.Kd=0.0,
 	
 	.Target=0.0f,
@@ -152,6 +155,9 @@ int main (void)
 		Prev_CarMode = CarMode;
 		CarMode = Menu_GetCurMode();
 		
+		
+
+////////////////////////////////////////////////////////////////任务四//////////////////////////////
 		// 检测模式变化
 		if (Prev_CarMode != CarMode) {
 			// 进入录制模式
@@ -199,16 +205,8 @@ int main (void)
 			speed = 2.0f;
 			yaw_offset = 0;
 		}
-		//转向环测试
-//		if(key_get_state(KEY_3))
-//		{
-//			Start_Angle_Turn(47);
-//		}
-//		
-//		if(key_get_state(KEY_4))
-//		{
-//			Start_Angle_Turn(-47);
-//		}
+		
+
 /////////////////////////////////////////////////////////////////////////////////蓝牙遥控代码
 		uint8_t BlueControlflag=0;
 		if(CarMode==MODE_5)
@@ -244,8 +242,7 @@ void pit_handler (void)
 	static uint8_t Count3=8;
 	Count0++;
 	Count1++;
-	Count2++;
-	Count3++;	
+	
 	
 	if (CarMode == MODE_2) {
 		SpeedPID.Ki = 0.0f;
@@ -260,20 +257,12 @@ void pit_handler (void)
 		Menu_UpDate();
 		Menu_JustRefreshValue();
 	}
-///////////////////////////////////////////////////////////////////////////////////////////////// 姿态解算，角度环控制
+//////////////////////////////////////////////////////////////////////姿态解算，角度环控制/////////////////////////// 
 	if (Count0 >= 10) // 每10ms进行一次姿态解算，和平衡态控制
 	{
 		Count0 = 0;
 		
 		Get_Angle();
-		
-		// 调用四元数更新（内部会读取最新的陀螺仪数据并积分）
-//		quaternion_update();
-		
-//		// 获取四元数解算出的欧拉角（单位：度）
-//		Quaternion *att = get_eular_angles();
-//		yaw = att->yaw;
-		
 		SpeedLeft = Get_Count1();
 		SpeedRight = Get_Count2();
 		Encoder_Clear();
@@ -284,10 +273,6 @@ void pit_handler (void)
 		if(CarMode != IDLE && CarMode != MODE_4_RECORD)
 		{
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
-//			if (Is_Angle_Turning())
-//			{
-//				Update_Angle_Turn();
-//			}
 		}
 		else
 		{
@@ -296,31 +281,8 @@ void pit_handler (void)
 			SpeedPID.ErrorInt = 0;
 			SensorPID.ErrorInt = 0;
 		}
-//		switch(CarMode){
-//			case MODE_1:
-//			case MODE_2:
-//			case MODE_3:
-//			case MODE_5:
-//				Balance_PIDControl();
-//				break;
-//			case MODE_4_RECORD:
-//				// 录制模式：确保电机停止，不执行平衡控制
-//				Motor_SetPWM(1, 0);
-//				Motor_SetPWM(2, 0);
-//				SpeedPID.ErrorInt = 0;
-//				SensorPID.ErrorInt = 0;
-//				break;
-//			case MODE_4_REPLAY:
-//				// 复现模式需要平衡控制
-//				Balance_PIDControl();
-//				break;
-//			default:
-//				Motor_SetPWM(1, 0);
-//				Motor_SetPWM(2, 0);
-//				SpeedPID.ErrorInt = 0;
-//				SensorPID.ErrorInt = 0;
-//				break;
-//		}
+		
+/////////////////////////////////////////////////////////
 		/*
 		惯导的代码放在这，与yaw角的获取频率一致
 		*/
@@ -357,23 +319,6 @@ void pit_handler (void)
 				float delta_L = nav_L - Replay_Last_L;
 				float delta_R = nav_R - Replay_Last_R;
 				
-				// 【参数】加速度阈值：2ms内脉冲突变不允许超过 15。
-				// (15相当于极强的物理推背感，超过这个值99%是车轮空转打滑)
-//				float slip_threshold = 40.0f; 
-//				
-//				if (fabsf(delta_L) > slip_threshold) {
-//					nav_L = Replay_Last_L + (delta_L > 0 ? slip_threshold : -slip_threshold);
-//				}
-//				if (fabsf(delta_R) > slip_threshold) {
-//					nav_R = Replay_Last_R + (delta_R > 0 ? slip_threshold : -slip_threshold);
-//				}
-				
-				// --- 第二重保护：绝对物理极限限幅 (防彻底腾空空转) ---
-				// 【参数】最大车速阈值：假设车子物理极限速度是 120cm/s (约 150脉冲/2ms)
-//				float max_abs_speed = 150.0f; 
-//				if(nav_L > max_abs_speed) nav_L = max_abs_speed; else if(nav_L < -max_abs_speed) nav_L = -max_abs_speed;
-//				if(nav_R > max_abs_speed) nav_R = max_abs_speed; else if(nav_R < -max_abs_speed) nav_R = -max_abs_speed;
-				
 				// 更新历史值供下个2ms使用
 				Replay_Last_L = nav_L;
 				Replay_Last_R = nav_R;
@@ -403,6 +348,8 @@ void pit_handler (void)
 			Total_Encoder_L = 0;
 			Total_Encoder_R = 0;
 		}
+//////////////////////////////////////////////////////////////////////		
+		
 	}
 	
 	
@@ -439,37 +386,20 @@ TaskPromopt();//任务二三的提示函数
 		
 		
 /////////////////////////////任务三////////////////////////////////////
-	if(Count3 >= 18)  // 每10ms执行一次
+	if(CarMode == MODE_3)
 	{
-		Count3 = 8;
-		Distance_Cal();
-
-		if(CarMode == MODE_3)
-		{		
-			// 保存之前的循迹状态
-			previouscur_track_state = cur_track_state;
-			// 更新传感器状态
+		Count3++;
+		if(Count3 >= 15)  // 每15ms执行一次
+		{
+			Count3=0;
+			previouscur_track_state=cur_track_state;
 			Sensor_PIDControl();
-			//黑线进白线
-			if(previouscur_track_state!=cur_track_state) {				
-				track3_flag = !track3_flag;
-//				track3_turn_flag = (track3_turn_flag + 1) % 4;
-//				track3_turn_flag = !track3_turn_flag;
-				if(track3_flag)
-				{
-					track3_dir_flag = -track3_dir_flag;
-					Start_Angle_Turn(track3_dir_flag * TRACK3_TURN_ANGLE);
-				}	
-				track3_end_flag ++;
-				Distance_Init();
-				onLinePromoptFlag=1;
-			}
-			Track3_Start();
-			//任务三声光判定
+			TaskThreeRun();
 			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
 		}
+		
 	}
-
+	
 }
 
 /**
@@ -490,25 +420,7 @@ void Menu_UpDate(void)
            Menu_Backward();
        } else if (key_get_state(KEY_2) == KEY_LONG_PRESS) {
            Menu_SavePIDToFlash();
-       }
-	
-	//将最新参数赋值给参与计算的变量
-//	AnglePID.Kp = Menu_GetValue(STAND_PID_MENU, 0)*1000;
-//	AnglePID.Ki = Menu_GetValue(STAND_PID_MENU, 1)*1000;
-//	AnglePID.Kd = Menu_GetValue(STAND_PID_MENU, 2)*1000;
-
-//	SpeedPID.Kp = Menu_GetValue(SPEED_PID_MENU, 0);
-//	SpeedPID.Ki = Menu_GetValue(SPEED_PID_MENU, 1);
-//	SpeedPID.Kd = Menu_GetValue(SPEED_PID_MENU, 2);
-
-//	TurnPID.Kp = Menu_GetValue(TURNING_PID_MENU, 0);
-//	TurnPID.Ki = Menu_GetValue(TURNING_PID_MENU, 1);
-//	TurnPID.Kd = Menu_GetValue(TURNING_PID_MENU, 2);
-
-//	SensorPID.Kp = Menu_GetValue(SENSOR_PID_MENU, 0);
-//	SensorPID.Ki = Menu_GetValue(SENSOR_PID_MENU, 1);
-//	SensorPID.Kd = Menu_GetValue(SENSOR_PID_MENU, 2);
-	   
+       }   
 }
 
 /**
@@ -535,3 +447,4 @@ void TaskPromopt(void)
 		StopPromopt();
 	}		
 }
+

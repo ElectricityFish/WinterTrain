@@ -1372,6 +1372,16 @@
               <FileType>5</FileType>
               <FilePath>..\System\TaskTwo.h</FilePath>
             </File>
+            <File>
+              <FileName>TaskThree.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\TaskThree.c</FilePath>
+            </File>
+            <File>
+              <FileName>TaskThree.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\TaskThree.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

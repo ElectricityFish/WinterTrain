@@ -22,7 +22,6 @@ double L1_WEIGHT = 1.0f;           // 内部灯的权重
 int track_lost_counter = 0;
 double yaw_offset;
 
-
 /* ==============================================================================================
                                         函数定义
    ============================================================================================== */
@@ -60,15 +59,15 @@ double Sensor_GetSensorError(void)
 
     double Error = 0;
     // LEFT
-    Error -= ( L4_WEIGHT * L4
-             + L3_WEIGHT * L3
-             + L2_WEIGHT * L2
-             + L1_WEIGHT * L1);
+    Error -= ( L4_WEIGHT * Left4
+             + L3_WEIGHT * Left3
+             + L2_WEIGHT * Left2
+             + L1_WEIGHT * Left1);
     // RIGHT
-    Error += ( L4_WEIGHT * R4
-             + L3_WEIGHT * R3
-             + L2_WEIGHT * R2
-             + L1_WEIGHT * R1);
+    Error += ( L4_WEIGHT * Right4
+             + L3_WEIGHT * Right3
+             + L2_WEIGHT * Right2
+             + L1_WEIGHT * Right1);
     
     return Error;
 }
@@ -112,24 +111,35 @@ extern float yaw;
  * @note 卡车丢失
  * @return 0表示正常，1表示卡车丢失
  */
-int Sensor_CheckTrack(void)      // 0->黑线  1->白线
-{   
-//    if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4) {
-//        return 1;
-//    } 
-//	else 
-//	{
-//		return 0;
-//	}
-	
-	uint8_t Sensor_LED[8] = {L1,L2,L3,L4,R1,R2,R3,R4};
-	int Count = 0;
-	for (int i = 0; i < 8; i++) {
-		if (Sensor_LED[i] == 0) { // 检测到黑线
-			Count++;
-		}
+int Sensor_CheckTrack(void) 
+{
+    static int lost_flag = 0;  // 断线标志
+    static int lost_counter = 0;  // 断线计数器
+    
+    if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4) {
+        lost_counter++;
+    } 
+	else 
+	{
+        // 重新检测到线，重置状态
+        lost_counter = 0;
+        lost_flag = 0;
     }
-	
-	if(Count == 0){return 1;}
-	else{return 0;}
+    
+    // 连续10次（100ms）检测到全白
+    if (lost_counter >= 10) {
+        if (lost_flag == 0) 
+		{
+            // 第一次检测到断线
+            lost_flag = 1;
+            yaw_offset = 0;
+            return 1;  // 返回1表示刚断线
+        } 
+		else 
+		{
+            return 2;  // 返回2表示持续断线
+        }
+    } else {
+        return 0;  // 正常
+    }
 }

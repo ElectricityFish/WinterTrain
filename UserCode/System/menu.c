@@ -10,9 +10,6 @@
 extern uint16_t stop_flag;
 extern uint16_t turn_flag;
 
-extern uint16_t task3_stop_flag;
-extern uint16_t task3_mode_flag;
-
 extern float SpeedLeft;
 extern float SpeedRight;
 

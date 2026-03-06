@@ -395,15 +395,17 @@ void pit_handler (void)
 		}
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////// 任务二
-	if(Count2 >= 15)
+	TaskTwoPromopt();
+	if(CarMode == MODE_2)
 	{
-		Count2 = 0;
-		previouscur_track_state=cur_track_state;
-		Sensor_PIDControl();
-		TaskTwoPromopt();
+		Count2 ++;
 				
-		if(CarMode == MODE_2)
+		if(Count2 >= 15)
 		{
+			Count2 = 0;
+			previouscur_track_state=cur_track_state;
+			Sensor_PIDControl();
+			TaskTwoPromopt();
 			// 刚检测到断线
 			if (cur_track_state == 1) 
 			{
@@ -437,47 +439,30 @@ void pit_handler (void)
 		
 	}
 /////////////////////////////任务三////////////////////////////////////
-	if(Count3 >= 18)  // 每10ms执行一次
+	if(CarMode == MODE_3)  // 每10ms执行一次
 	{
-		Count3 = 10;
-		Distance_Cal();
+		Count3 ++;
 
-		if(CarMode == MODE_3)
-		{		
-			// 保存之前的循迹状态
-			previouscur_track_state = cur_track_state;
-			// 更新传感器状态
+		if(Count3 >= 18)
+		{
+			Count3 = 3;
+			previouscur_track_state=cur_track_state;
 			Sensor_PIDControl();
-			// 任务3的声光提示
-			TaskTwoPromopt();
-			//黑线进白线
-			if(previouscur_track_state!=cur_track_state) {				
-				track3_flag = !track3_flag;
-				if(track3_flag)
-				{
-					track3_dir_flag = -track3_dir_flag;
-					Start_Angle_Turn(track3_dir_flag * TRACK3_TURN_ANGLE);
-				}	
-				track3_end_flag ++;
-				Distance_Init();
-//				onLinePromoptFlag=1;
-			}
 			Track3_Start();
-			//任务三声光判定
-			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
 		}
+		
 	}
 ///////////////////////////////////////任务4////////////////////////////////
-	if(CarMode == MODE_4_RECORD)
-	{
-		Motor_SetPWM(1,0);
-		Motor_SetPWM(2,0);
-		N.Nav_System_Run_Index = 1;
-	}
-	else if(CarMode == MODE_4_REPLAY)
-	{
-		N.Nav_System_Run_Index = 2;
-	}
+//	if(CarMode == MODE_4_RECORD)
+//	{
+//		Motor_SetPWM(1,0);
+//		Motor_SetPWM(2,0);
+//		N.Nav_System_Run_Index = 1;
+//	}
+//	else if(CarMode == MODE_4_REPLAY)
+//	{
+//		N.Nav_System_Run_Index = 2;
+//	}
 }
 
 /**

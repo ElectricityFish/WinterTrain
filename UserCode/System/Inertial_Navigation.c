@@ -74,9 +74,9 @@ void Run_Nag_GPS(void)
     
     // ★ 核心修复 1：既然 1个点=1cm，预瞄距离必须拉长！
     // 设基础预瞄为 25cm，速度越快看得越远
-//	float L_distance = 3.0f + current_speed * 0.13f;
-    float L_distance = 3.0f + current_speed * 12.0f; 
-    if(L_distance > 50.0f) L_distance = 50.0f; // 最多看前方 80cm
+//	float L_distance = 3.0f + current_speed * 0.13f;  //这个可以
+    float L_distance = 2.0f + current_speed * 0.13f; 
+    if(L_distance > 50.0f) L_distance = 50.0f; // 最多看前方 50cm
     
     // 算力优化：提前算好平方，下面比对时就不需要开根号了
     float L_dist_sq = L_distance * L_distance; 
@@ -166,7 +166,7 @@ void Run_Nag_GPS(void)
         float expected_v = corner_target_v;
 
         // 3. 终点提前减速逻辑 (优先级最高)
-        uint16_t decel_distance = 20;     // 离终点还剩多少个点开始刹车
+        uint16_t decel_distance = 10;     // 离终点还剩多少个点开始刹车
         uint16_t remain_points = N.Save_index - N.Run_index;
         
         if (remain_points <= decel_distance) {

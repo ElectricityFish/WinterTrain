@@ -16,7 +16,7 @@
         <TargetCommonOption>
           <Device>MM32F3273G8P</Device>
           <Vendor>MindMotion</Vendor>
-          <PackID>MindMotion.MM32F3270_DFP.1.0.5</PackID>
+          <PackID>MindMotion.MM32F3270_DFP.1.1.8</PackID>
           <PackURL>http://www.mindmotion.com.cn/Download/MDK_KEIL/</PackURL>
           <Cpu>IRAM(0x20000000,0x20000) IROM(0x08000000,0x80000) CPUTYPE("Cortex-M3") CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -1361,6 +1361,16 @@
               <FileName>track3.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\System\track3.h</FilePath>
+            </File>
+            <File>
+              <FileName>TaskTwo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\TaskTwo.c</FilePath>
+            </File>
+            <File>
+              <FileName>TaskTwo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\TaskTwo.h</FilePath>
             </File>
           </Files>
         </Group>

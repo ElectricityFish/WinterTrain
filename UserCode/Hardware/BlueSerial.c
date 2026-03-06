@@ -154,7 +154,7 @@ void BlueSerial_Control(float *SpeedTarget,float *TurnTarget)
 			RV = atoi(strtok(NULL, ","));
 		}
 		
-		*SpeedTarget=LV/15;
+		*SpeedTarget=LV/30;
 		*TurnTarget=RH/10;
 		
 		Serial_RxFlag = 0;//记得标志位归零

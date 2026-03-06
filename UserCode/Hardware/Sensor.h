@@ -7,8 +7,7 @@
                                         宏定义和枚举类型
    ============================================================================================== */
 #define SENSOR_COUNT            (8)
-#define ALPHA                   (0.7f)
-#define MAPPING_FACTOR          (1.0f)
+#define MAPPING_FACTOR          (1.7f)
 
 #define Right4                  (gpio_get_level   (E8))
 #define Right3                  (gpio_get_level   (E9))
@@ -27,7 +26,7 @@
 void Sensor_Init            (void);
 double Sensor_GetSensorError      (void);
 double Sensor_GetYawError      (void);
-double Sensor_ComplementaryFilteredError (void);
-int Sensor_CheckTrack       (void); 
+double Sensor_ComplementaryFilteredError (float ALPHA);
+int Sensor_CheckTrack(void);  // 返回值: 0-正常, 1-刚断线, 2-持续断线 
 
 #endif

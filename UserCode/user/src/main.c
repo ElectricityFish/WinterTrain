@@ -13,6 +13,7 @@
 #include "nav_flash.h"
 #include "track3.h"
 #include <math.h>
+#include "TaskTwo.h"
 
 /* ==============================================================================================
                                         全局变量声明
@@ -39,7 +40,6 @@ float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 int16_t turn_flag = 0;
-int16_t stop_flag = 0;
 float Plus_Left = 0;
 float Plus_Right = 0;
 
@@ -53,7 +53,7 @@ extern int cur_track_state;
 extern double speed;
 extern int cur_track_state;
 uint8_t previouscur_track_state;	    //记录上一时刻的循迹状态，用于任务二的声光提示
-uint8_t onLinePromoptFlag=0;			//用于任务二的声光提示
+extern uint8_t onLinePromoptFlag;			//用于任务二的声光提示
 
 //任务二相关标志位
 int8_t track2_flag = 0;
@@ -113,7 +113,7 @@ PID_t SensorPID = {
                                         函数声明
    ============================================================================================== */
 
-void TaskTwoPromopt(void);								//任务二提示函数
+void TaskPromopt(void);								//提示函数
 void Menu_UpDate(void); //封装后的菜单更新函数
 
 /* ==============================================================================================
@@ -209,13 +209,23 @@ int main (void)
 //		{
 //			Start_Angle_Turn(-47);
 //		}
-		
-		//蓝牙遥控代码
+/////////////////////////////////////////////////////////////////////////////////蓝牙遥控代码
+		uint8_t BlueControlflag=0;
 		if(CarMode==MODE_5)
 		{
+			BlueControlflag=1;
+			SpeedPID.Ki=-0.5;
+			AnglePID.Kd=2000.0;
 			BlueSerial_Control(&SpeedPID.Target,&TurnPID.Target);
+		}else{
+			if(BlueControlflag==1)
+			{
+				SpeedPID.Ki=-6.0;
+				AnglePID.Kd=1700.0;
+				BlueControlflag=0;
+			}
 		}
-		
+/////////////////////////////////////////////////////////////////////////////////////////
 	}
 }
 
@@ -394,48 +404,40 @@ void pit_handler (void)
 			Total_Encoder_R = 0;
 		}
 	}
+	
+	
+TaskPromopt();//任务二三的提示函数
 ///////////////////////////////////////////////////////////////////////////////////////////////// 任务二
-	if(Count2 >= 15)
+	static uint8_t TaskTwoControlflag=0;
+	if(CarMode == MODE_2)
 	{
-		Count2 = 0;
-		previouscur_track_state=cur_track_state;
-		Sensor_PIDControl();
-		TaskTwoPromopt();
-				
-		if(CarMode == MODE_2)
+		TaskTwoControlflag=1;
+		Count2++;
+		//可变参数
+		SpeedPID.Ki=-0.5;
+		AnglePID.Kd=2000.0;
+		if(Count2 >= 15)
 		{
-			// 刚检测到断线
-			if (cur_track_state == 1) 
-			{
-				stop_flag ++;
-				gyro_yaw = 0.0f;
-				TurnPID.Target = 0.0f;
-				SensorPID.Ki = 0.0f;
-				
-				if(stop_flag == 3)
-				{
-					SpeedPID.Target  = 0.0f;
-					Menu_SetRunningMode(MODE_1);
-				}
-			}
-			// 持续断线状态
-			else if (cur_track_state == 0) 
-			{
-				TurnPID.Target = 0.0f;
-				SensorPID.Ki = 0.0f;
-			}
-			// 正常状态
-			else
-			{
-				TurnPID.Target = SensorPID.Out;
-				SensorPID.Ki = 0.0f;
-			}
-			
-			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
-				
+			Count2 = 0;
+			previouscur_track_state=cur_track_state;
+			Sensor_PIDControl();
+			TaskTwoRun();
 		}
 		
-	}
+	}else{
+		if(TaskTwoControlflag==1)
+		{
+			SpeedPID.Ki=-6.0;
+			AnglePID.Kd=1700.0;
+			TaskTwoControlflag=0;
+		}
+		}
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		
+		
+		
+		
 /////////////////////////////任务三////////////////////////////////////
 	if(Count3 >= 18)  // 每10ms执行一次
 	{
@@ -448,8 +450,6 @@ void pit_handler (void)
 			previouscur_track_state = cur_track_state;
 			// 更新传感器状态
 			Sensor_PIDControl();
-			// 任务3的声光提示
-			TaskTwoPromopt();
 			//黑线进白线
 			if(previouscur_track_state!=cur_track_state) {				
 				track3_flag = !track3_flag;
@@ -466,20 +466,10 @@ void pit_handler (void)
 			}
 			Track3_Start();
 			//任务三声光判定
-//			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
+			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
 		}
 	}
-///////////////////////////////////////任务4////////////////////////////////
-	if(CarMode == MODE_4_RECORD)
-	{
-		Motor_SetPWM(1,0);
-		Motor_SetPWM(2,0);
-		N.Nav_System_Run_Index = 1;
-	}
-	else if(CarMode == MODE_4_REPLAY)
-	{
-		N.Nav_System_Run_Index = 2;
-	}
+
 }
 
 /**
@@ -521,22 +511,27 @@ void Menu_UpDate(void)
 	   
 }
 
-void TaskTwoPromopt(void)								//任务二提示函数
+/**
+ * @brief 提示函数
+ * @note 功能：进行声光提示
+ * @return 无
+ */
+void TaskPromopt(void)								
 {
 	static uint8_t PromoptFlag=0;
 	static uint8_t PromoptCount=0;
 	
 	if(onLinePromoptFlag==1)
 	{
-		PromoptCount=20;
+		PromoptCount=250;
 		onLinePromoptFlag=0;
 	}
+	
 	if(PromoptCount>0)
 	{
 		Promopt();
 		PromoptCount--;
 	}else{
 		StopPromopt();
-	}
-		
+	}		
 }

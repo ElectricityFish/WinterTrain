@@ -1,4 +1,3 @@
-
 /************************************************************************************************
 * @name   红外循迹与误差获取模块
 * @note   PID计算不在这里！
@@ -111,31 +110,36 @@ extern float yaw;
  * @note 卡车丢失
  * @return 0表示正常，1表示卡车丢失
  */
-int Sensor_CheckTrack(void)      // 0->黑线  1->白线
-{   
-//    if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4) {
-//        return 1;
-//    } 
-//	else 
-//	{
-//		return 0;
-//	}
-
-	static int count = 0;        // 连续检测到全白的次数
-    int all_white = (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4);
-
-    if (all_white) {
-        if (count < 3) {         // 设定阈值，例如3次
-            count++;
+int Sensor_CheckTrack(void) 
+{
+    static int lost_flag = 0;  // 断线标志
+    static int lost_counter = 0;  // 断线计数器
+    
+    if (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4) {
+        lost_counter++;
+    } 
+	else 
+	{
+        // 重新检测到线，重置状态
+        lost_counter = 0;
+        lost_flag = 0;
+    }
+    
+    // 连续10次（100ms）检测到全白
+    if (lost_counter >= 10) {
+        if (lost_flag == 0) 
+		{
+            // 第一次检测到断线
+            lost_flag = 1;
+            yaw_offset = 0;
+            return 1;  // 返回1表示刚断线
+        } 
+		else 
+		{
+            return 2;  // 返回2表示持续断线
         }
     } else {
-        count = 0;                // 重置计数
-    }
-
-    // 如果连续计数达到阈值，则认为全白
-    if (count >= 3) {
-        return 1;                 // 全白
-    } else {
-        return 0;                 // 有黑线
+        return 0;  // 正常
     }
 }
+

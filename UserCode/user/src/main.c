@@ -439,36 +439,20 @@ TaskPromopt();//任务二三的提示函数
 		
 		
 /////////////////////////////任务三////////////////////////////////////
-	if(Count3 >= 18)  // 每10ms执行一次
+if(CarMode == MODE_3)  // 每10ms执行一次
+{
+	Count3 ++;
+	SpeedPID.Ki=-0.5;
+	AnglePID.Kd=2000.0;
+	if(Count3 >= 18)
 	{
-		Count3 = 8;
-		Distance_Cal();
-
-		if(CarMode == MODE_3)
-		{		
-			// 保存之前的循迹状态
-			previouscur_track_state = cur_track_state;
-			// 更新传感器状态
-			Sensor_PIDControl();
-			//黑线进白线
-			if(previouscur_track_state!=cur_track_state) {				
-				track3_flag = !track3_flag;
-//				track3_turn_flag = (track3_turn_flag + 1) % 4;
-//				track3_turn_flag = !track3_turn_flag;
-				if(track3_flag)
-				{
-					track3_dir_flag = -track3_dir_flag;
-					Start_Angle_Turn(track3_dir_flag * TRACK3_TURN_ANGLE);
-				}	
-				track3_end_flag ++;
-				Distance_Init();
-				onLinePromoptFlag=1;
-			}
-			Track3_Start();
-			//任务三声光判定
-			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
-		}
+		Count3 = 3;
+		previouscur_track_state=cur_track_state;
+		Sensor_PIDControl();
+		Track3_Start();
 	}
+		
+}
 
 }
 

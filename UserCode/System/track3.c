@@ -61,7 +61,7 @@ void Track3_Start()
 	switch(track3_flag){
 		//循迹
 		case 0:
-			SpeedPID.Target = 2.0f;    
+			SpeedPID.Target = 2.5f;    
 			TurnPID.Target = 0.0f;
 			SensorPID.Ki = 0.0f;					
 			break;
@@ -73,15 +73,15 @@ void Track3_Start()
 				TurnPID.Target = 0.0f;  // 保持直行
 				if(distance_track3 >= 0 && distance_track3 <= 100)
 				{
-					SpeedPID.Target = 2.5f;   //提速冲刺
+					SpeedPID.Target = 3.0f;   //提速冲刺
 				}
 				else if(distance_track3 > 100 && distance_track3 <= 128)
 				{
-					SpeedPID.Target = 2.0f;    //稍微降速
+					SpeedPID.Target = 2.5f;    //稍微降速
 				}
 				else if(distance_track3 >= 129)   //快要到时转回直线
 				{
-					SpeedPID.Target = 1.5f;	
+					SpeedPID.Target = 2.0f;	
 					Start_Angle_Turn(-track3_dir_flag * TRACK3_TURN_ANGLE);
 //					track3_flag = !track3_flag;
 //					track3_turn_flag = (track3_turn_flag + 1) % 4;

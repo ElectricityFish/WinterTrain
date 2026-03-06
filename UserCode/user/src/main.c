@@ -439,7 +439,7 @@ void pit_handler (void)
 /////////////////////////////任务三////////////////////////////////////
 	if(Count3 >= 18)  // 每10ms执行一次
 	{
-		Count3 = 8;
+		Count3 = 10;
 		Distance_Cal();
 
 		if(CarMode == MODE_3)
@@ -453,8 +453,6 @@ void pit_handler (void)
 			//黑线进白线
 			if(previouscur_track_state!=cur_track_state) {				
 				track3_flag = !track3_flag;
-//				track3_turn_flag = (track3_turn_flag + 1) % 4;
-//				track3_turn_flag = !track3_turn_flag;
 				if(track3_flag)
 				{
 					track3_dir_flag = -track3_dir_flag;
@@ -462,11 +460,11 @@ void pit_handler (void)
 				}	
 				track3_end_flag ++;
 				Distance_Init();
-				onLinePromoptFlag=1;
+//				onLinePromoptFlag=1;
 			}
 			Track3_Start();
 			//任务三声光判定
-//			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
+			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
 		}
 	}
 ///////////////////////////////////////任务4////////////////////////////////

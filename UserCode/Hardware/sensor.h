@@ -4,23 +4,21 @@
 
 #include "PID.h"
 
-#define TRACK_LOST_DEBOUNCE_RECOVER   3   // 从断线恢复到正常需要连续检测到黑线的次数
-
 /* ==============================================================================================
                                         宏定义和枚举类型
    ============================================================================================== */
 #define SENSOR_COUNT            (8)
 #define MAPPING_FACTOR          (1.7f)
 
-#define Right4                  (gpio_get_level   (E8))
-#define Right3                  (gpio_get_level   (E9))
-#define Right2                  (gpio_get_level   (E10))
-#define Right1                  (gpio_get_level   (E11))
+#define R4                  (gpio_get_level   (E8))
+#define R3                  (gpio_get_level   (E9))
+#define R2                  (gpio_get_level   (E10))
+#define R1                  (gpio_get_level   (E11))
 
-#define Left4                   (gpio_get_level   (E12))
-#define Left3                   (gpio_get_level   (E13))
-#define Left2                   (gpio_get_level   (E14))
-#define Left1                   (gpio_get_level   (E15))
+#define L4                   (gpio_get_level   (E12))
+#define L3                   (gpio_get_level   (E13))
+#define L2                   (gpio_get_level   (E14))
+#define L1                   (gpio_get_level   (E15))
 
 /* ==============================================================================================
                                         函数申明

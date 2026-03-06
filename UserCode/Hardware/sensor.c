@@ -22,6 +22,7 @@ double L1_WEIGHT = 1.0f;           // 内部灯的权重
 int track_lost_counter = 0;
 double yaw_offset;
 
+
 /* ==============================================================================================
                                         函数定义
    ============================================================================================== */
@@ -59,15 +60,15 @@ double Sensor_GetSensorError(void)
 
     double Error = 0;
     // LEFT
-    Error -= ( L4_WEIGHT * Left4
-             + L3_WEIGHT * Left3
-             + L2_WEIGHT * Left2
-             + L1_WEIGHT * Left1);
+    Error -= ( L4_WEIGHT * L4
+             + L3_WEIGHT * L3
+             + L2_WEIGHT * L2
+             + L1_WEIGHT * L1);
     // RIGHT
-    Error += ( L4_WEIGHT * Right4
-             + L3_WEIGHT * Right3
-             + L2_WEIGHT * Right2
-             + L1_WEIGHT * Right1);
+    Error += ( L4_WEIGHT * R4
+             + L3_WEIGHT * R3
+             + L2_WEIGHT * R2
+             + L1_WEIGHT * R1);
     
     return Error;
 }
@@ -120,22 +121,15 @@ int Sensor_CheckTrack(void)      // 0->黑线  1->白线
 //	{
 //		return 0;
 //	}
-
-	static int count = 0;        // 连续检测到全白的次数
-    int all_white = (Left1 && Left2 && Left3 && Left4 && Right1 && Right2 && Right3 && Right4);
-
-    if (all_white) {
-        if (count < 3) {         // 设定阈值，例如3次
-            count++;
-        }
-    } else {
-        count = 0;                // 重置计数
+	
+	uint8_t Sensor_LED[8] = {L1,L2,L3,L4,R1,R2,R3,R4};
+	int Count = 0;
+	for (int i = 0; i < 8; i++) {
+		if (Sensor_LED[i] == 0) { // 检测到黑线
+			Count++;
+		}
     }
-
-    // 如果连续计数达到阈值，则认为全白
-    if (count >= 3) {
-        return 1;                 // 全白
-    } else {
-        return 0;                 // 有黑线
-    }
+	
+	if(Count == 0){return 1;}
+	else{return 0;}
 }

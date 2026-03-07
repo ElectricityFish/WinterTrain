@@ -82,13 +82,13 @@ void Track3_Start()
 				{
 					SpeedPID.Target = 3.0f;   //提速冲刺
 				}
-				else if(distance_track3 > 100 && distance_track3 <= 129)
+				else if(distance_track3 > 100 && distance_track3 <= 128)
 				{
-					SpeedPID.Target = 2.5f;    //稍微降速
+					SpeedPID.Target = 3.0f;    //稍微降速
 				}
-				else if(distance_track3 >= 130)   //快要到时转回直线
+				else if(distance_track3 >= 129)   //快要到时转回直线
 				{
-					SpeedPID.Target = 2.0f;	
+					SpeedPID.Target = 2.5f;	
 					Start_Angle_Turn(-track3_dir_flag * TRACK3_TURN_ANGLE1);
 					Distance_Init();
 				}
@@ -105,7 +105,7 @@ void Track3_Start()
 				}
 				else if(distance_track3 >= 132)   //快要到时转回直线
 				{
-					SpeedPID.Target = 2.0f;	
+					SpeedPID.Target = 2.5f;	
 					Start_Angle_Turn(-track3_dir_flag * TRACK3_TURN_ANGLE2);
 					Distance_Init();
 				}

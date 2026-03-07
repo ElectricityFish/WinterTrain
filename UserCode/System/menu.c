@@ -484,8 +484,8 @@ void Menu_Refresh(void)
         } else if (interface[current_interface].option_mode[i] == READ_ENCODER) {
 //            oled_show_float(60, i, Plus_Left, 4, 2);
 //            oled_show_float(100, i, Plus_Right, 4, 2);
-			oled_show_int(60,i,track3_flag,2);
-			oled_show_int(100,i,track3_dir_flag,2);
+			oled_show_int(60,i,Left1,2);
+			oled_show_int(100,i,Right1,2);
         }
     }
 
@@ -508,8 +508,8 @@ void Menu_JustRefreshValue(void)
         } else if (interface[current_interface].option_mode[i] == READ_ENCODER) {
 //            oled_show_float(60, i, Plus_Left, 4, 2);
 //            oled_show_float(100, i, Plus_Right, 4, 2);
-			oled_show_int(60,i,track3_flag,2);
-			oled_show_int(100,i,track3_dir_flag,2);
+			oled_show_int(60,i,Left1,2);
+			oled_show_int(100,i,Right1,2);
         }
     }  
 } 

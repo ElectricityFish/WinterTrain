@@ -431,7 +431,7 @@ TaskPromopt();//任务二三的提示函数
 			AnglePID.Kd=1700.0;
 			TaskTwoControlflag=0;
 		}
-		}
+	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 		
@@ -439,20 +439,20 @@ TaskPromopt();//任务二三的提示函数
 		
 		
 /////////////////////////////任务三////////////////////////////////////
-if(CarMode == MODE_3)  // 每10ms执行一次
-{
-	Count3 ++;
-	SpeedPID.Ki=-0.5;
-	AnglePID.Kd=2000.0;
-	if(Count3 >= 18)
+	if(CarMode == MODE_3)  // 每10ms执行一次
 	{
-		Count3 = 3;
-		previouscur_track_state=cur_track_state;
-		Sensor_PIDControl();
-		Track3_Start();
+		Count3 ++;
+		SpeedPID.Ki=-2.0;
+		AnglePID.Kd=2200.0;
+		if(Count3 >= 18)
+		{
+			Count3 = 3;
+			previouscur_track_state=cur_track_state;
+			Sensor_PIDControl();
+			Track3_Start();
+		}
+			
 	}
-		
-}
 
 }
 

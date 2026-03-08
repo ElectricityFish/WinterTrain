@@ -154,11 +154,7 @@ void BlueSerial_Control(float *SpeedTarget,float *TurnTarget)
 			RV = atoi(strtok(NULL, ","));
 		}
 		
-<<<<<<< HEAD
-		*SpeedTarget=LV/15;
-=======
 		*SpeedTarget=LV/30;
->>>>>>> 与main分支合并
 		*TurnTarget=RH/10;
 		
 		Serial_RxFlag = 0;//记得标志位归零
@@ -166,8 +162,3 @@ void BlueSerial_Control(float *SpeedTarget,float *TurnTarget)
 		
     }	
 }
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 与main分支合并

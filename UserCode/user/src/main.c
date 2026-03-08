@@ -10,13 +10,10 @@
 #include "turn_control.h"
 #include "Inertial_Navigation.h"
 #include "BlueSerial.h"
-<<<<<<< HEAD
-=======
 #include "nav_flash.h"
 #include "track3.h"
 #include <math.h>
 #include "TaskTwo.h"
->>>>>>> 与main分支合并
 
 /* ==============================================================================================
                                         全局变量声明
@@ -55,10 +52,6 @@ static float Last_SpeedRight = 0;
 extern int cur_track_state;
 extern double speed;
 extern int cur_track_state;
-<<<<<<< HEAD
-uint8_t previouscur_track_state;	//记录上一时刻的循迹状态，用于任务二的声光提示
-uint8_t onLinePromoptFlag=0;			//用于任务二的声光提示
-=======
 uint8_t previouscur_track_state;	    //记录上一时刻的循迹状态，用于任务二的声光提示
 extern uint8_t onLinePromoptFlag;			//用于任务二的声光提示
 
@@ -70,7 +63,6 @@ extern int8_t track3_flag;          //0->循迹   1->直走
 extern int8_t track3_turn_flag;     //转向标志位
 extern int8_t track3_end_flag;      //结束标志位
 extern int8_t track3_dir_flag;     //转向方向
->>>>>>> 与main分支合并
 
 PID_t AnglePID={
 	.Kp=660.0,
@@ -121,11 +113,7 @@ PID_t SensorPID = {
                                         函数声明
    ============================================================================================== */
 
-<<<<<<< HEAD
-void TaskTwoPromopt(void);								//任务二提示函数
-=======
 void TaskPromopt(void);								//提示函数
->>>>>>> 与main分支合并
 void Menu_UpDate(void); //封装后的菜单更新函数
 
 /* ==============================================================================================
@@ -151,17 +139,12 @@ int main (void)
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
 	
-<<<<<<< HEAD
-	BludeSerial_Init();										//蓝牙初始化
-	
-=======
 	quaternion_init();                                      // 初始化四元数模块,用于修正yaw角
 	
 	BludeSerial_Init();										//蓝牙初始化
 	
 	Init_Nag();                                             //惯导初始化
 	
->>>>>>> 与main分支合并
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
@@ -216,15 +199,6 @@ int main (void)
 			speed = 3.0f;
 			yaw_offset = 0;
 		}
-<<<<<<< HEAD
-		
-		//蓝牙遥控代码
-		if(CarMode==MODE_5)
-		{
-			BlueSerial_Control(&SpeedPID.Target,&TurnPID.Target);
-		}
-		
-=======
 		//转向环测试
 //		if(key_get_state(KEY_3))
 //		{
@@ -252,7 +226,6 @@ int main (void)
 			}
 		}
 /////////////////////////////////////////////////////////////////////////////////////////
->>>>>>> 与main分支合并
 	}
 }
 
@@ -323,19 +296,6 @@ void pit_handler (void)
 			SpeedPID.ErrorInt = 0;
 			SensorPID.ErrorInt = 0;
 		}
-<<<<<<< HEAD
-	}
-///////////////////////////////////////////////////////////////////////////////////////////////// 任务二
-	if(Count2 >= 15)
-	{
-		Count2 = 0;
-		previouscur_track_state=cur_track_state;
-		Sensor_PIDControl();
-		TaskTwoPromopt();
-		
-		
-		if(CarMode == MODE_2)
-=======
 //		switch(CarMode){
 //			case MODE_1:
 //			case MODE_2:
@@ -365,7 +325,6 @@ void pit_handler (void)
 		惯导的代码放在这，与yaw角的获取频率一致
 		*/
 		if(N.Nav_System_Run_Index != 0)
->>>>>>> 与main分支合并
 		{
 			
 			// 声明静态变量，用于记录复现模式下的历史速度 (计算加速度用)
@@ -431,10 +390,6 @@ void pit_handler (void)
 				TurnPID.Target = N.Final_Out;
 			}
 			
-<<<<<<< HEAD
-			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
-				
-=======
 			if(N.Nag_Stop_f == 1)
             {
                 SpeedPID.Target = 0.0f;    // 1. 速度归零 (刹车)
@@ -447,7 +402,6 @@ void pit_handler (void)
 		{
 			Total_Encoder_L = 0;
 			Total_Encoder_R = 0;
->>>>>>> 与main分支合并
 		}
 	}
 	
@@ -542,42 +496,18 @@ void Menu_UpDate(void)
 	   
 }
 
-<<<<<<< HEAD
-void TaskTwoPromopt(void)								//任务二提示函数
-=======
 /**
  * @brief 提示函数
  * @note 功能：进行声光提示
  * @return 无
  */
 void TaskPromopt(void)								
->>>>>>> 与main分支合并
 {
 	static uint8_t PromoptFlag=0;
 	static uint8_t PromoptCount=0;
 	
 	if(onLinePromoptFlag==1)
 	{
-<<<<<<< HEAD
-		PromoptCount=20;
-		onLinePromoptFlag=0;
-	}
-	
-
-		
-		if(PromoptCount>0)
-		{
-			Promopt();
-			PromoptCount--;
-		}else{
-			StopPromopt();
-		}
-		
-}
-
-
-
-=======
 		PromoptCount=250;
 		onLinePromoptFlag=0;
 	}
@@ -590,4 +520,3 @@ void TaskPromopt(void)
 		StopPromopt();
 	}		
 }
->>>>>>> 与main分支合并

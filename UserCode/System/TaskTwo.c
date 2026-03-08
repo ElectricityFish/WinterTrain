@@ -48,7 +48,7 @@ void TaskTwoRun(void)
 	//正常状态
 	else
 	{
-		SpeedPID.Target=2.5;
+		SpeedPID.Target=3.0;
 		TurnPID.Target = SensorPID.Out;
 		SensorPID.Ki = 0.0f;
 	}

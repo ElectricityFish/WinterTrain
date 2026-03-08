@@ -78,7 +78,7 @@ PID_t AnglePID={
 
 PID_t SpeedPID={	
 	.Kp=-1200,
-	.Ki=-1200.0 / 200.0,
+	.Ki=-6.f,
 	.Kd=0.0,
 	
 	.Target=0.0f,
@@ -439,11 +439,12 @@ TaskPromopt();//任务二三的提示函数
 		
 		
 /////////////////////////////任务三////////////////////////////////////
-if(CarMode == MODE_3)  // 每10ms执行一次
+if(CarMode == MODE_3)  // 每15ms执行一次
 {
 	Count3 ++;
-	SpeedPID.Ki=-0.5;
-	AnglePID.Kd=2000.0;
+	SpeedPID.Ki=-1.0;
+	AnglePID.Kp=600.f;
+	AnglePID.Kd=2300.0;
 	if(Count3 >= 18)
 	{
 		Count3 = 3;

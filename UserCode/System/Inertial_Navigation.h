@@ -2,88 +2,54 @@
 #define __INERTIAL_NAVIGATION_H
 
 #include "zf_common_headfile.h"
+#include <stdbool.h>
 
-/* ==============================================================================================
-                                        宏定义和枚举类型定义
-   ============================================================================================== */
+extern float Total_Encoder_L;
+extern float Total_Encoder_R;
+extern float yaw;
 
-// Flash存储配置
-#define INERTIAL_NAV_FLASH_SECTOR         100     // 惯导数据存储扇区
-#define INERTIAL_NAV_FLASH_PAGE           0       // 惯导数据存储页
-#define INERTIAL_NAV_MAX_POINTS           512     // 最大记录点数（每点8字节，一页512个点）
-#define INERTIAL_NAV_RECORD_INTERVAL_MS   20      // 记录间隔20ms（50Hz采样）
+//*********************用户设置区域****************************//
+#define MaxSize 10000           //1cm记录一次，可以记录100m
 
-// 记录数据类型枚举
-typedef enum {
-    INERTIAL_NAV_IDLE = 0,       // 空闲状态
-    INERTIAL_NAV_RECORDING,      // 正在记录
-    INERTIAL_NAV_REPLAYING,      // 正在回放
-    INERTIAL_NAV_FINISHED        // 回放完成
-} inertial_nav_state_t;
+// 2. 里程计阈值
+#define Nag_Set_mileage 12     //小车行走1cm的编码器脉冲总数
 
-// 路径点数据结构
-#pragma pack(push, 1)  // 1字节对齐，节省Flash空间
-typedef struct {
-    int16_t left_speed;          // 左轮速度（编码器计数）
-    int16_t right_speed;         // 右轮速度（编码器计数）
-    float   pitch;               // 俯仰角
-    float   yaw;                 // 偏航角
-    uint8_t flags;               // 标志位
-} path_point_t;
-#pragma pack(pop)
+//参数范围 <1 - 80>
+//#define Nag_End_Page 30      //flash中止页面
+//#define Nag_Start_Page 90   //flah起始页面
 
-// 路径头信息结构
-typedef struct {
-    uint16_t    point_count;     // 路径点数
-    uint16_t    record_time_ms;  // 记录总时间（毫秒）
-    uint32_t    checksum;        // 校验和
-    uint8_t     version;         // 版本号
-    uint8_t     reserved[3];     // 保留字节
-} path_header_t;
+#define Nag_Yaw yaw          //陀螺仪读取出来的偏航角
 
-/* ==============================================================================================
-                                        全局变量声明
-   ============================================================================================== */
+#define L_Mileage Total_Encoder_L
+#define R_Mileage Total_Encoder_R  
+//********************************************************//
+//将小车的轨迹转化为虚拟坐标值（x，y）存入
+typedef struct{
+	float x;
+	float y;
+}Pathpoint;
 
-extern inertial_nav_state_t inertial_nav_state;
-extern uint16_t inertial_nav_current_index;
-extern uint16_t inertial_nav_total_points;
-extern path_header_t inertial_nav_header;
-extern path_point_t inertial_nav_current_point;
+typedef struct{
+        float Final_Out;
+	    float Mileage_All;
+	    //小车实际坐标值
+	    float Current_X;
+	    float Current_Y;
+		uint8 Nag_Stop_f;                   //结束标志位
+		uint16 Run_index;                   //进程标志位
+		uint16 Save_index;                  //记录打的点的个数
+		uint8 End_f;                        //停止记录
+	    uint8 Nav_System_Run_Index;         //引用状态机：0=空闲，1=记忆，2=复现
+}Nag;
 
-/* ==============================================================================================
-                                        函数声明
-   ============================================================================================== */
+extern Nag N;   //整个变量的结构体，方便开发和移植
 
-// 初始化函数
-void Inertial_Nav_Init(void);
+extern Pathpoint Nav_Record_Buffer[MaxSize];
 
-// 记录相关函数
-void Inertial_Nav_StartRecord(void);
-void Inertial_Nav_StopRecord(void);
-void Inertial_Nav_SaveToFlash(void);
-void Inertial_Nav_RecordPoint(void);
-
-// 回放相关函数
-void Inertial_Nav_StartReplay(void);
-void Inertial_Nav_StopReplay(void);
-void Inertial_Nav_LoadFromFlash(void);
-uint8_t Inertial_Nav_GetNextPoint(void);
-
-// 状态检查函数
-uint8_t Inertial_Nav_IsRecording(void);
-uint8_t Inertial_Nav_IsReplaying(void);
-uint8_t Inertial_Nav_IsFinished(void);
-
-// 数据获取函数
-uint16_t Inertial_Nav_GetCurrentIndex(void);
-uint16_t Inertial_Nav_GetTotalPoints(void);
-uint16_t Inertial_Nav_GetRemainingTime(void);
-
-// Flash操作函数
-void Inertial_Nav_FlashErase(void);
-uint8_t Inertial_Nav_FlashWriteData(uint32_t addr, const void* data, uint16_t size);
-uint8_t Inertial_Nav_FlashReadData(uint32_t addr, void* data, uint16_t size);
-uint32_t Inertial_Nav_CalculateChecksum(const void* data, uint16_t size);
+void Run_Nag_GPS();
+void Run_Nag_Save(); 
+//****************************//
+void Init_Nag();    //这个是参数初始化与flash的缓冲区初始化，请放到函数开始。
+void Nag_System();  //这个是惯性导航最后的包装函数，请放到中断中。
 
 #endif

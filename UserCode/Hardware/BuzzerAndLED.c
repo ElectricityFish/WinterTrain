@@ -17,4 +17,7 @@ void StopPromopt(void)
 	gpio_set_level (B1, 0);	
 	gpio_set_level (B2, 0);
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 与main分支合并

@@ -1332,6 +1332,46 @@
               <FileType>5</FileType>
               <FilePath>..\System\Inertial_Navigation.h</FilePath>
             </File>
+            <File>
+              <FileName>nav_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\nav_flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>nav_flash.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\nav_flash.h</FilePath>
+            </File>
+            <File>
+              <FileName>quaternion.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\quaternion.c</FilePath>
+            </File>
+            <File>
+              <FileName>quaternion.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\quaternion.h</FilePath>
+            </File>
+            <File>
+              <FileName>track3.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\track3.c</FilePath>
+            </File>
+            <File>
+              <FileName>track3.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\track3.h</FilePath>
+            </File>
+            <File>
+              <FileName>TaskTwo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\TaskTwo.c</FilePath>
+            </File>
+            <File>
+              <FileName>TaskTwo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\TaskTwo.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

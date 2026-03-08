@@ -10,6 +10,13 @@
 #include "turn_control.h"
 #include "Inertial_Navigation.h"
 #include "BlueSerial.h"
+<<<<<<< HEAD
+=======
+#include "nav_flash.h"
+#include "track3.h"
+#include <math.h>
+#include "TaskTwo.h"
+>>>>>>> 与main分支合并
 
 /* ==============================================================================================
                                         全局变量声明
@@ -36,13 +43,34 @@ float AveSpeed,DifSpeed;
 int16_t LeftPWM,RightPWM;
 int16_t AvePWM,DifPWM;
 int16_t turn_flag = 0;
-int16_t stop_flag = 0;
+float Plus_Left = 0;
+float Plus_Right = 0;
+
+float Total_Encoder_L = 0;
+float Total_Encoder_R = 0;
+static float Last_SpeedLeft = 0;
+static float Last_SpeedRight = 0;
 
 //循迹需要
+extern int cur_track_state;
 extern double speed;
 extern int cur_track_state;
+<<<<<<< HEAD
 uint8_t previouscur_track_state;	//记录上一时刻的循迹状态，用于任务二的声光提示
 uint8_t onLinePromoptFlag=0;			//用于任务二的声光提示
+=======
+uint8_t previouscur_track_state;	    //记录上一时刻的循迹状态，用于任务二的声光提示
+extern uint8_t onLinePromoptFlag;			//用于任务二的声光提示
+
+//任务二相关标志位
+int8_t track2_flag = 0;
+
+//任务三相关标志位引用
+extern int8_t track3_flag;          //0->循迹   1->直走
+extern int8_t track3_turn_flag;     //转向标志位
+extern int8_t track3_end_flag;      //结束标志位
+extern int8_t track3_dir_flag;     //转向方向
+>>>>>>> 与main分支合并
 
 PID_t AnglePID={
 	.Kp=660.0,
@@ -58,7 +86,7 @@ PID_t AnglePID={
 
 PID_t SpeedPID={	
 	.Kp=-1200,
-	.Ki=-1200.0 / 200.0,
+	.Ki=-6.f,
 	.Kd=0.0,
 	
 	.Target=0.0f,
@@ -79,7 +107,7 @@ PID_t TurnPID={
 };
 
 PID_t SensorPID = {
-    .Kp         = 8.5f,
+    .Kp         = 9.5f,
     .Ki         = 0.0f,
     .Kd         = 7.5f,
 
@@ -93,7 +121,11 @@ PID_t SensorPID = {
                                         函数声明
    ============================================================================================== */
 
+<<<<<<< HEAD
 void TaskTwoPromopt(void);								//任务二提示函数
+=======
+void TaskPromopt(void);								//提示函数
+>>>>>>> 与main分支合并
 void Menu_UpDate(void); //封装后的菜单更新函数
 
 /* ==============================================================================================
@@ -119,20 +151,72 @@ int main (void)
 	Menu_Init();											// 初始化菜单，内含OLED初始化
 	mpu6050_init();											// 姿态传感器初始化
 	
+<<<<<<< HEAD
 	BludeSerial_Init();										//蓝牙初始化
 	
+=======
+	quaternion_init();                                      // 初始化四元数模块,用于修正yaw角
+	
+	BludeSerial_Init();										//蓝牙初始化
+	
+	Init_Nag();                                             //惯导初始化
+	
+>>>>>>> 与main分支合并
 /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     while(1)
 	{	
 		Prev_CarMode = CarMode;
 		CarMode = Menu_GetCurMode();
+		
+		// 检测模式变化
+		if (Prev_CarMode != CarMode) {
+			// 进入录制模式
+			if (CarMode == MODE_4_RECORD) {
+				// 清空路径缓冲区，重置记录索引
+				N.Save_index = 0;
+				N.Current_X = 0;
+				N.Current_Y = 0;
+				N.Mileage_All = 0;
+				N.End_f = 0;
+				N.Nag_Stop_f = 0;
+				memset(Nav_Record_Buffer, 0, sizeof(Nav_Record_Buffer));
+				// 启动录制状态机（状态1）
+				N.Nav_System_Run_Index = 1;
+			}
+			// 进入复现模式
+			else if (CarMode == MODE_4_REPLAY) {
+				// 从Flash加载路径
+				if (flash_load_nag()) {
+					N.Run_index = 0;
+					N.Current_X = 0;
+					N.Current_Y = 0;
+					N.Nag_Stop_f = 0;
+					// 启动复现状态机（状态2）
+					N.Nav_System_Run_Index = 2;
+				} else {
+					// 无有效路径数据，强制退出模式
+					Menu_SetRunningMode(IDLE);
+				}
+			}
+			// 退出录制模式时保存路径
+			else if (Prev_CarMode == MODE_4_RECORD && CarMode == IDLE) {
+				flash_save_nag();   // 将录制的路径存入Flash
+				N.Nav_System_Run_Index = 0;   
+			}
+			// 退出复现模式时只需停止状态机（路径已在Flash中）
+			else if (Prev_CarMode == MODE_4_REPLAY && CarMode == IDLE) {
+				N.Nav_System_Run_Index = 0;
+			}
+		}
+
 		if(key_get_state(KEY_2)) 
 		{
 			gyro_yaw = 0;
 			speed = 3.0f;
 			yaw_offset = 0;
 		}
+<<<<<<< HEAD
 		
 		//蓝牙遥控代码
 		if(CarMode==MODE_5)
@@ -140,6 +224,35 @@ int main (void)
 			BlueSerial_Control(&SpeedPID.Target,&TurnPID.Target);
 		}
 		
+=======
+		//转向环测试
+//		if(key_get_state(KEY_3))
+//		{
+//			Start_Angle_Turn(47);
+//		}
+//		
+//		if(key_get_state(KEY_4))
+//		{
+//			Start_Angle_Turn(-47);
+//		}
+/////////////////////////////////////////////////////////////////////////////////蓝牙遥控代码
+		uint8_t BlueControlflag=0;
+		if(CarMode==MODE_5)
+		{
+			BlueControlflag=1;
+			SpeedPID.Ki=-0.5;
+			AnglePID.Kd=2000.0;
+			BlueSerial_Control(&SpeedPID.Target,&TurnPID.Target);
+		}else{
+			if(BlueControlflag==1)
+			{
+				SpeedPID.Ki=-6.0;
+				AnglePID.Kd=1700.0;
+				BlueControlflag=0;
+			}
+		}
+/////////////////////////////////////////////////////////////////////////////////////////
+>>>>>>> 与main分支合并
 	}
 }
 
@@ -155,18 +268,17 @@ void pit_handler (void)
 	static uint8_t Count0=0;
 	static uint8_t Count1=5; //初始值不同进行错峰更新
 	static uint8_t Count2=2;
+	static uint8_t Count3=8;
 	Count0++;
 	Count1++;
 	Count2++;
-	
-	system_time_ms++;  // 增加系统时间
+	Count3++;	
 	
 	if (CarMode == MODE_2) {
 		SpeedPID.Ki = 0.0f;
 	} else {
 		SpeedPID.Ki = -1200.0 / 200.0f;
 	}
-
 	
 	if(Count1>=10)//每10ms进行一次按钮检测，和菜单更新，并从菜单获取最新参数
 	{
@@ -181,18 +293,28 @@ void pit_handler (void)
 		Count0 = 0;
 		
 		Get_Angle();
+		
+		// 调用四元数更新（内部会读取最新的陀螺仪数据并积分）
+//		quaternion_update();
+		
+//		// 获取四元数解算出的欧拉角（单位：度）
+//		Quaternion *att = get_eular_angles();
+//		yaw = att->yaw;
+		
 		SpeedLeft = Get_Count1();
 		SpeedRight = Get_Count2();
 		Encoder_Clear();
 		
-		if(CarMode!=IDLE)
+		Plus_Left += SpeedLeft;
+		Plus_Right += SpeedRight;
+		
+		if(CarMode != IDLE && CarMode != MODE_4_RECORD)
 		{
 			Balance_PIDControl();//直立PID控制函数，详见PID.c
-			
-			if (Is_Angle_Turning())
-			{
-				Update_Angle_Turn();
-			}
+//			if (Is_Angle_Turning())
+//			{
+//				Update_Angle_Turn();
+//			}
 		}
 		else
 		{
@@ -201,6 +323,7 @@ void pit_handler (void)
 			SpeedPID.ErrorInt = 0;
 			SensorPID.ErrorInt = 0;
 		}
+<<<<<<< HEAD
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////// 任务二
 	if(Count2 >= 15)
@@ -212,42 +335,173 @@ void pit_handler (void)
 		
 		
 		if(CarMode == MODE_2)
+=======
+//		switch(CarMode){
+//			case MODE_1:
+//			case MODE_2:
+//			case MODE_3:
+//			case MODE_5:
+//				Balance_PIDControl();
+//				break;
+//			case MODE_4_RECORD:
+//				// 录制模式：确保电机停止，不执行平衡控制
+//				Motor_SetPWM(1, 0);
+//				Motor_SetPWM(2, 0);
+//				SpeedPID.ErrorInt = 0;
+//				SensorPID.ErrorInt = 0;
+//				break;
+//			case MODE_4_REPLAY:
+//				// 复现模式需要平衡控制
+//				Balance_PIDControl();
+//				break;
+//			default:
+//				Motor_SetPWM(1, 0);
+//				Motor_SetPWM(2, 0);
+//				SpeedPID.ErrorInt = 0;
+//				SensorPID.ErrorInt = 0;
+//				break;
+//		}
+		/*
+		惯导的代码放在这，与yaw角的获取频率一致
+		*/
+		if(N.Nav_System_Run_Index != 0)
+>>>>>>> 与main分支合并
 		{
-			// 刚检测到断线
-			if (cur_track_state == 1) 
+			
+			// 声明静态变量，用于记录复现模式下的历史速度 (计算加速度用)
+			static float Replay_Last_L = 0.0f;
+			static float Replay_Last_R = 0.0f;
+
+			// =========================================================
+			// 【模式 1：录制模式 (Teach)】- 绝对纯净，0 延迟，0 限幅
+			// =========================================================
+			if(N.Nav_System_Run_Index == 1) 
 			{
-				stop_flag ++;
-				gyro_yaw = 0.0f;
-				TurnPID.Target = 0.0f;
-				SensorPID.Ki = 0.0f;
+				// 录制时：完全信任真实脉冲，不漏掉任何一个微小的转角
+				Total_Encoder_L = SpeedLeft;
+				Total_Encoder_R = SpeedRight;
 				
-				if(stop_flag == 3)
-				{
-					SpeedPID.Target  = 0.0f;
-					Menu_SetRunningMode(MODE_1);
-				}
+				// 实时同步历史值，防止未来切入复现模式瞬间产生巨大跳变
+				Replay_Last_L = SpeedLeft;
+				Replay_Last_R = SpeedRight;
 			}
-			// 持续断线状态
-			else if (cur_track_state == 2) 
+			// =========================================================
+			// 【模式 3：复现模式 (Replay)】- 开启双重防打滑保护
+			// =========================================================
+			else if(N.Nav_System_Run_Index == 2)
 			{
-				TurnPID.Target = 0.0f;
-				SensorPID.Ki = 0.0f;
-			}
-			// 正常状态
-			else
-			{
-				TurnPID.Target = SensorPID.Out;
-				SensorPID.Ki = 0.0f;
+				
+				float nav_L = SpeedLeft;
+				float nav_R = SpeedRight;
+				
+				// --- 第一重保护：加速度限幅 (防起步/急刹瞬间打滑) ---
+				float delta_L = nav_L - Replay_Last_L;
+				float delta_R = nav_R - Replay_Last_R;
+				
+				// 【参数】加速度阈值：2ms内脉冲突变不允许超过 15。
+				// (15相当于极强的物理推背感，超过这个值99%是车轮空转打滑)
+//				float slip_threshold = 40.0f; 
+//				
+//				if (fabsf(delta_L) > slip_threshold) {
+//					nav_L = Replay_Last_L + (delta_L > 0 ? slip_threshold : -slip_threshold);
+//				}
+//				if (fabsf(delta_R) > slip_threshold) {
+//					nav_R = Replay_Last_R + (delta_R > 0 ? slip_threshold : -slip_threshold);
+//				}
+				
+				// --- 第二重保护：绝对物理极限限幅 (防彻底腾空空转) ---
+				// 【参数】最大车速阈值：假设车子物理极限速度是 120cm/s (约 150脉冲/2ms)
+//				float max_abs_speed = 150.0f; 
+//				if(nav_L > max_abs_speed) nav_L = max_abs_speed; else if(nav_L < -max_abs_speed) nav_L = -max_abs_speed;
+//				if(nav_R > max_abs_speed) nav_R = max_abs_speed; else if(nav_R < -max_abs_speed) nav_R = -max_abs_speed;
+				
+				// 更新历史值供下个2ms使用
+				Replay_Last_L = nav_L;
+				Replay_Last_R = nav_R;
+				
+				// 喂给导航系统进行安全积分
+				Total_Encoder_L = nav_L;
+				Total_Encoder_R = nav_R;
 			}
 			
+			Nag_System(); // 执行惯导核心 (10ms 一次)
+			
+			// 如果是复现模式，将惯导输出的转向量作为转向目标
+			if (CarMode == MODE_4_REPLAY) {
+				TurnPID.Target = N.Final_Out;
+			}
+			
+<<<<<<< HEAD
 			if(previouscur_track_state!=cur_track_state)onLinePromoptFlag=1;
 				
+=======
+			if(N.Nag_Stop_f == 1)
+            {
+                SpeedPID.Target = 0.0f;    // 1. 速度归零 (刹车)
+                TurnPID.Target = 0.0f;        // 2. 转向归零 (回正)
+				Menu_SetRunningMode(MODE_1);
+                N.Nav_System_Run_Index = 0; // 3. 退出惯导状态机              
+            }
+        }
+		else
+		{
+			Total_Encoder_L = 0;
+			Total_Encoder_R = 0;
+>>>>>>> 与main分支合并
 		}
-		
 	}
 	
+	
+TaskPromopt();//任务二三的提示函数
+///////////////////////////////////////////////////////////////////////////////////////////////// 任务二
+	static uint8_t TaskTwoControlflag=0;
+	if(CarMode == MODE_2)
+	{
+		TaskTwoControlflag=1;
+		Count2++;
+		//可变参数
+		SpeedPID.Ki=-0.5;
+		AnglePID.Kd=2000.0;
+		if(Count2 >= 15)
+		{
+			Count2 = 0;
+			previouscur_track_state=cur_track_state;
+			Sensor_PIDControl();
+			TaskTwoRun();
+		}
+		
+	}else{
+		if(TaskTwoControlflag==1)
+		{
+			SpeedPID.Ki=-6.0;
+			AnglePID.Kd=1700.0;
+			TaskTwoControlflag=0;
+		}
+		}
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		
+		
+		
+		
+/////////////////////////////任务三////////////////////////////////////
+if(CarMode == MODE_3)  // 每15ms执行一次
+{
+	Count3 ++;
+	SpeedPID.Ki=-1.0;
+	AnglePID.Kp=600.f;
+	AnglePID.Kd=2300.0;
+	if(Count3 >= 18)
+	{
+		Count3 = 3;
+		previouscur_track_state=cur_track_state;
+		Sensor_PIDControl();
+		Track3_Start();
+	}
+		
 }
 
+}
 
 /**
  * @brief 封装后的菜单跟新函数
@@ -288,13 +542,23 @@ void Menu_UpDate(void)
 	   
 }
 
+<<<<<<< HEAD
 void TaskTwoPromopt(void)								//任务二提示函数
+=======
+/**
+ * @brief 提示函数
+ * @note 功能：进行声光提示
+ * @return 无
+ */
+void TaskPromopt(void)								
+>>>>>>> 与main分支合并
 {
 	static uint8_t PromoptFlag=0;
 	static uint8_t PromoptCount=0;
 	
 	if(onLinePromoptFlag==1)
 	{
+<<<<<<< HEAD
 		PromoptCount=20;
 		onLinePromoptFlag=0;
 	}
@@ -313,3 +577,17 @@ void TaskTwoPromopt(void)								//任务二提示函数
 
 
 
+=======
+		PromoptCount=250;
+		onLinePromoptFlag=0;
+	}
+	
+	if(PromoptCount>0)
+	{
+		Promopt();
+		PromoptCount--;
+	}else{
+		StopPromopt();
+	}		
+}
+>>>>>>> 与main分支合并
